@@ -1,0 +1,57 @@
+# ロボットの物理パラメータ — このファイルが唯一の正
+#
+# CAD・シミュレータ・制御コードが別々の寸法を持つと、
+# 原因不明の挙動に何週間も溶かすことになる。
+# 数値を変えるときは必ず Issue を立てて全員で合意すること。
+#
+# 単位: 長さ [m] / 質量 [kg] / 角度 [rad] / 慣性 [kg*m^2]
+
+meta:
+  name: humanoid-v1
+  version: 0.1.0
+  status: draft   # draft -> fixed (Phase 0 完了時に fixed にする)
+
+# 制御周期
+timing:
+  control_hz: 50        # PC 側の制御・ポリシー推論の周期
+  firmware_hz: 1000     # マイコン側のサーボ制御ループ
+  # TODO: 実測した往復通信遅延 [s] を入れる（ドメインランダム化で使う）
+  comm_delay_s: null
+
+# 全体
+robot:
+  total_mass: null      # TODO
+  height: null          # TODO 直立時の全高
+  num_joints: 12
+
+# リンク（TODO: CAD から質量・重心・慣性を出して埋める）
+links:
+  torso:
+    mass: null
+    com: [0.0, 0.0, 0.0]
+    inertia: null
+  l_thigh:
+    length: null
+    mass: null
+  l_shank:
+    length: null
+    mass: null
+  l_foot:
+    size: null          # [長さ, 幅, 高さ] 支持多角形の大きさを決める重要な値
+    mass: null
+
+# 関節（並び順が RobotState.joint_positions の並び順と一致する）
+# 詳細な定義は docs/interfaces/joints.md
+joints:
+  - {id: 0,  name: l_hip_yaw,      axis: z, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 1,  name: l_hip_roll,     axis: x, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 2,  name: l_hip_pitch,    axis: y, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 3,  name: l_knee_pitch,   axis: y, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 4,  name: l_ankle_pitch,  axis: y, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 5,  name: l_ankle_roll,   axis: x, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 6,  name: r_hip_yaw,      axis: z, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 7,  name: r_hip_roll,     axis: x, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 8,  name: r_hip_pitch,    axis: y, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 9,  name: r_knee_pitch,   axis: y, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 10, name: r_ankle_pitch,  axis: y, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 11, name: r_ankle_roll,   axis: x, limit_lower: null, limit_upper: null, torque_max: null}

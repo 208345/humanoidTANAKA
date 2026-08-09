@@ -1,0 +1,27 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# データ・成果物（大きいので Git に入れない）
+datasets/**
+!datasets/README.md
+learning/policies/**
+!learning/policies/README.md
+*.db
+*.log
+*.mp4
+*.bag
+
+# CAD の生ファイル
+hardware/cad/**
+!hardware/cad/README.md
+
+# エディタ・OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,43 @@
+[project]
+name = "humanoid"
+version = "0.1.0"
+description = "3人チームで開発する小型ヒューマノイドロボット"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# シミュレーションと学習（GPU があると学習が現実的な速度になる）
+sim = [
+    "mujoco>=3.0",
+]
+# 実機との通信
+real = [
+    "pyserial>=3.5",
+]
+# 開発ツール
+dev = [
+    "pytest>=7.4",
+    "ruff>=0.6",
+    "matplotlib>=3.7",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["control*", "learning*", "tools*"]
+
+[tool.pytest.ini_options]
+testpaths = ["control/tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
