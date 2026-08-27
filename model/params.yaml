@@ -22,7 +22,7 @@ timing:
 robot:
   total_mass: null      # TODO
   height: null          # TODO 直立時の全高
-  num_joints: 12
+  num_joints: 6
 
 # リンク（TODO: CAD から質量・重心・慣性を出して埋める）
 links:
@@ -43,15 +43,9 @@ links:
 # 関節（並び順が RobotState.joint_positions の並び順と一致する）
 # 詳細な定義は docs/interfaces/joints.md
 joints:
-  - {id: 0,  name: l_hip_yaw,      axis: z, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 1,  name: l_hip_roll,     axis: x, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 2,  name: l_hip_pitch,    axis: y, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 3,  name: l_knee_pitch,   axis: y, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 4,  name: l_ankle_pitch,  axis: y, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 5,  name: l_ankle_roll,   axis: x, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 6,  name: r_hip_yaw,      axis: z, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 7,  name: r_hip_roll,     axis: x, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 8,  name: r_hip_pitch,    axis: y, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 9,  name: r_knee_pitch,   axis: y, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 10, name: r_ankle_pitch,  axis: y, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 11, name: r_ankle_roll,   axis: x, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 0,  name: joint_1,      axis: y, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 1,  name: joint_2,      axis: y, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 2,  name: joint_3,      axis: y, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 3,  name: joint_4,      axis: y, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 4,  name: joint_5,      axis: y, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 5,  name: joint_6,      axis: x, limit_lower: null, limit_upper: null, torque_max: null}
