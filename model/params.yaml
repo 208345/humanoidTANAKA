@@ -1,51 +1,55 @@
 # ロボットの物理パラメータ — このファイルが唯一の正
 #
-# CAD・シミュレータ・制御コードが別々の寸法を持つと、
-# 原因不明の挙動に何週間も溶かすことになる。
-# 数値を変えるときは必ず Issue を立てて全員で合意すること。
+# 値の出所:
+#   - PLAパーツ質量/慣性: model/meshes/*.stl から体積・重心・慣性を実測し、
+#     実効密度 1178 kg/m^3 (中実PLA 1240.0 x infill 0.95) を乗算
+#   - サーボ: MG996R x6 (各55 g, ストールトルク約1.0 N·m @6V, 無負荷約6 rad/s)
+#   - 電装(基板+バッテリ+配線): base_link に 150 g を仮置き（要実測）
+#   詳細な内訳は URDF の <inertial> を参照。
 #
 # 単位: 長さ [m] / 質量 [kg] / 角度 [rad] / 慣性 [kg*m^2]
 
 meta:
   name: humanoid-v1
-  version: 0.1.0
-  status: draft   # draft -> fixed (Phase 0 完了時に fixed にする)
+  version: 0.2.0
+  status: draft   # 電装重量を実測したら fixed へ
 
-# 制御周期
 timing:
-  control_hz: 50        # PC 側の制御・ポリシー推論の周期
-  firmware_hz: 1000     # マイコン側のサーボ制御ループ
-  # TODO: 実測した往復通信遅延 [s] を入れる（ドメインランダム化で使う）
-  comm_delay_s: null
+  control_hz: 50
+  firmware_hz: 1000
+  comm_delay_s: null      # TODO: 実測往復遅延（ドメインrandで使用）
 
-# 全体
 robot:
-  total_mass: null      # TODO
-  height: null          # TODO 直立時の全高
+  total_mass: 0.763
+  height: 0.322          # 直立時のおおよその全高（脚伸展）
   num_joints: 6
 
-# リンク（TODO: CAD から質量・重心・慣性を出して埋める）
-links:
-  torso:
-    mass: null
-    com: [0.0, 0.0, 0.0]
-    inertia: null
-  l_thigh:
-    length: null
-    mass: null
-  l_shank:
-    length: null
-    mass: null
-  l_foot:
-    size: null          # [長さ, 幅, 高さ] 支持多角形の大きさを決める重要な値
-    mass: null
+actuator:
+  model: MG996R
+  count: 6
+  mass_each: 0.055
+  stall_torque_nm: 1.0    # 11 kg·cm @6V。連続使用は ~0.4 以下が安全
+  no_load_speed_rps: 6.0
+  gear: metal
+  torque_feedback: false
 
-# 関節（並び順が RobotState.joint_positions の並び順と一致する）
-# 詳細な定義は docs/interfaces/joints.md
+links:
+  base_link:            {mass: 0.3522}   # 骨盤プレート + サーボ2 + 電装
+  YAMAMOdogA.step_1:    {mass: 0.0964}   # 右 腿/脛 + サーボ1
+  YAMAMOdogA.stepA_2:   {mass: 0.0964}
+  YAMAMOdogA.stepA_1:   {mass: 0.0964}   # 左 腿/脛 + サーボ1
+  YAMAMOdogA.step_2:    {mass: 0.0964}
+  Leg12_v1_1:           {mass: 0.0128}   # 右 足（サーボ無し）
+  Leg12_v1__1__1:       {mass: 0.0128}   # 左 足
+  l_foot:
+    size: [0.05, 0.03, 0.05]   # [長さ, 幅, 高さ] 支持多角形。狭いので転びやすい
+
+# 関節（並び順が RobotState.joint_positions と一致）
+# torque_max = MG996R ストールトルク。lower/upper は URDF 由来（機構的可動域は要確認）
 joints:
-  - {id: 0,  name: joint_1,      axis: y, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 1,  name: joint_2,      axis: y, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 2,  name: joint_3,      axis: y, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 3,  name: joint_4,      axis: y, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 4,  name: joint_5,      axis: y, limit_lower: null, limit_upper: null, torque_max: null}
-  - {id: 5,  name: joint_6,      axis: x, limit_lower: null, limit_upper: null, torque_max: null}
+  - {id: 0, name: joint_1, axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
+  - {id: 1, name: joint_2, axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
+  - {id: 2, name: joint_3, axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
+  - {id: 3, name: joint_4, axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
+  - {id: 4, name: joint_5, axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
+  - {id: 5, name: joint_6, axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}

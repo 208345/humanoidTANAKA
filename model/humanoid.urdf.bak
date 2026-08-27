@@ -9,9 +9,9 @@
   </material>
   <link name="base_link">
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.002957 0.000000 0.000015"/>
-      <mass value="0.3522"/>
-      <inertia ixx="2.435e-04" ixy="-5.492e-12" ixz="1.509e-08" iyy="7.553e-05" iyz="1.018e-11" izz="2.767e-04"/>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -29,9 +29,9 @@
   </link>
   <link name="Leg12_v1_1">
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.004605 -0.002500 -0.024321"/>
-      <mass value="0.0128"/>
-      <inertia ixx="2.972e-06" ixy="4.312e-13" ixz="-6.839e-07" iyy="4.280e-06" iyz="-7.604e-12" izz="2.070e-06"/>
+      <origin rpy="0 0 0" xyz="0.009671 0.0387 0.128257"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0.009671 0.0387 0.128257"/>
@@ -49,9 +49,9 @@
   </link>
   <link name="Leg12_v1__1__1">
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.004605 0.002500 -0.024321"/>
-      <mass value="0.0128"/>
-      <inertia ixx="2.972e-06" ixy="4.373e-13" ixz="-6.839e-07" iyy="4.280e-06" iyz="-7.670e-12" izz="2.070e-06"/>
+      <origin rpy="0 0 0" xyz="0.009671 -0.0387 0.128257"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0.009671 -0.0387 0.128257"/>
@@ -69,9 +69,9 @@
   </link>
   <link name="YAMAMOdogA.step_1">
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.000000 0.002090 -0.057653"/>
-      <mass value="0.0964"/>
-      <inertia ixx="4.166e-05" ixy="-8.523e-09" ixz="1.272e-10" iyy="3.869e-05" iyz="4.816e-06" izz="2.103e-05"/>
+      <origin rpy="0 0 0" xyz="-3.6057498422475964e-07 -0.007085814129260223 -0.04903434210373424"/>
+      <mass value="0.2760109571215271"/>
+      <inertia ixx="0.000133" ixy="-0.0" ixz="-0.0" iyy="0.000115" iyz="-6e-06" izz="3.7e-05"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0.009671 0.0387 -2.9e-05"/>
@@ -89,9 +89,9 @@
   </link>
   <link name="YAMAMOdogA.stepA_2">
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.000000 -0.002090 -0.057652"/>
-      <mass value="0.0964"/>
-      <inertia ixx="4.166e-05" ixy="8.523e-09" ixz="1.302e-10" iyy="3.869e-05" iyz="-4.816e-06" izz="2.103e-05"/>
+      <origin rpy="0 0 0" xyz="-3.6017147062201993e-07 0.007085814129260196 -0.04903406321225638"/>
+      <mass value="0.2760109571215268"/>
+      <inertia ixx="0.000133" ixy="0.0" ixz="-0.0" iyy="0.000115" iyz="6e-06" izz="3.7e-05"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0.009671 0.0297 0.064114"/>
@@ -109,9 +109,9 @@
   </link>
   <link name="YAMAMOdogA.step_2">
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.000000 0.002090 -0.057652"/>
-      <mass value="0.0964"/>
-      <inertia ixx="4.166e-05" ixy="-8.523e-09" ixz="1.271e-10" iyy="3.869e-05" iyz="4.816e-06" izz="2.103e-05"/>
+      <origin rpy="0 0 0" xyz="-3.6012425457497554e-07 -0.007085814129260199 -0.049034063212256396"/>
+      <mass value="0.2760109571215271"/>
+      <inertia ixx="0.000133" ixy="-0.0" ixz="-0.0" iyy="0.000115" iyz="-6e-06" izz="3.7e-05"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0.009671 -0.0297 0.064114"/>
@@ -129,9 +129,9 @@
   </link>
   <link name="YAMAMOdogA.stepA_1">
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.000000 -0.002090 -0.057653"/>
-      <mass value="0.0964"/>
-      <inertia ixx="4.166e-05" ixy="8.523e-09" ixz="1.303e-10" iyy="3.869e-05" iyz="-4.816e-06" izz="2.103e-05"/>
+      <origin rpy="0 0 0" xyz="-3.6062220026659986e-07 0.00708581412926023 -0.049034342103734224"/>
+      <mass value="0.2760109571215268"/>
+      <inertia ixx="0.000133" ixy="0.0" ixz="-0.0" iyy="0.000115" iyz="6e-06" izz="3.7e-05"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0.009671 -0.0387 -2.9e-05"/>
@@ -152,42 +152,42 @@
     <parent link="YAMAMOdogA.stepA_2"/>
     <child link="Leg12_v1_1"/>
     <axis xyz="0.0 -1.0 0.0"/>
-    <limit effort="1.0" lower="-1.570796" upper="1.570796" velocity="6.0"/>
+    <limit effort="100" lower="-1.570796" upper="1.570796" velocity="100"/>
   </joint>
   <joint name="joint_2" type="revolute">
     <origin rpy="0 0 0" xyz="0.0 0.009 -0.064143"/>
     <parent link="YAMAMOdogA.step_2"/>
     <child link="Leg12_v1__1__1"/>
     <axis xyz="0.0 1.0 0.0"/>
-    <limit effort="1.0" lower="-1.570796" upper="1.570796" velocity="6.0"/>
+    <limit effort="100" lower="-1.570796" upper="1.570796" velocity="100"/>
   </joint>
   <joint name="joint_3" type="revolute">
     <origin rpy="0 0 0" xyz="-0.009671 -0.0387 2.9e-05"/>
     <parent link="base_link"/>
     <child link="YAMAMOdogA.step_1"/>
     <axis xyz="0.0 -1.0 0.0"/>
-    <limit effort="1.0" lower="-1.570796" upper="1.570796" velocity="6.0"/>
+    <limit effort="100" lower="-1.570796" upper="1.570796" velocity="100"/>
   </joint>
   <joint name="joint_4" type="revolute">
     <origin rpy="0 0 0" xyz="0.0 0.009 -0.064143"/>
     <parent link="YAMAMOdogA.step_1"/>
     <child link="YAMAMOdogA.stepA_2"/>
     <axis xyz="0.0 1.0 0.0"/>
-    <limit effort="1.0" lower="-1.570796" upper="1.570796" velocity="6.0"/>
+    <limit effort="100" lower="-1.570796" upper="1.570796" velocity="100"/>
   </joint>
   <joint name="joint_5" type="revolute">
     <origin rpy="0 0 0" xyz="0.0 -0.009 -0.064143"/>
     <parent link="YAMAMOdogA.stepA_1"/>
     <child link="YAMAMOdogA.step_2"/>
     <axis xyz="0.0 -1.0 0.0"/>
-    <limit effort="1.0" lower="-1.570796" upper="1.570796" velocity="6.0"/>
+    <limit effort="100" lower="-1.570796" upper="1.570796" velocity="100"/>
   </joint>
   <joint name="joint_6" type="revolute">
     <origin rpy="0 0 0" xyz="-0.009671 0.0387 2.9e-05"/>
     <parent link="base_link"/>
     <child link="YAMAMOdogA.stepA_1"/>
     <axis xyz="0.0 1.0 0.0"/>
-    <limit effort="1.0" lower="-1.570796" upper="1.570796" velocity="6.0"/>
+    <limit effort="100" lower="-1.570796" upper="1.570796" velocity="100"/>
   </joint>
 </robot>
 

@@ -16,7 +16,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
 from learning.envs.pybullet_env import PyBulletHumanoidEnv
-from learning.envs.unity_env import UnityHumanoidEnv
+# UnityHumanoidEnv は --backend unity のときだけ遅延 import（mlagents_envs 依存）
 from learning.train.rewards import StandingReward
 
 
@@ -49,6 +49,7 @@ def main() -> None:
     reward_fn = StandingReward(num_joints=num_joints)
 
     if args.backend == "unity":
+        from learning.envs.unity_env import UnityHumanoidEnv
         env = UnityHumanoidEnv(
             urdf_path=args.urdf,
             params_path=args.params,

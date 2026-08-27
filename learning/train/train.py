@@ -26,7 +26,8 @@ from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
 
 from learning.envs.pybullet_env import PyBulletHumanoidEnv
-from learning.envs.unity_env import UnityHumanoidEnv
+# UnityHumanoidEnv は mlagents_envs に依存するため、必要になったとき
+# （--backend unity）だけ遅延 import する。PyBullet 学習に mlagents は不要。
 from learning.train.callbacks import CheckpointCallback, CurriculumCallback
 from learning.train.curriculum import CurriculumManager
 from learning.train.rewards import StandingReward, WalkingReward
@@ -57,6 +58,7 @@ def make_env(
         if backend == "unity":
             # Workerごとのポート衝突を防ぐため、Unity側で Worker ID を割り当てる機能などは今回は簡略化
             # env_path が指定されていればそれを使う
+            from learning.envs.unity_env import UnityHumanoidEnv
             env = UnityHumanoidEnv(
                 urdf_path=urdf_path,
                 params_path=params_path,
