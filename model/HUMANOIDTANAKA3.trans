@@ -1,0 +1,70 @@
+<?xml version="1.0" ?>
+<robot name="HUMANOIDTANAKA3" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+
+<transmission name="‰ñ“] 5_tran">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="‰ñ“] 5">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="‰ñ“] 5_actr">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+<transmission name="‰ñ“] 6_tran">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="‰ñ“] 6">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="‰ñ“] 6_actr">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+<transmission name="‰ñ“] 7_tran">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="‰ñ“] 7">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="‰ñ“] 7_actr">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+<transmission name="‰ñ“] 8_tran">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="‰ñ“] 8">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="‰ñ“] 8_actr">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+<transmission name="‰ñ“] 9_tran">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="‰ñ“] 9">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="‰ñ“] 9_actr">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+<transmission name="‰ñ“] 10_tran">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="‰ñ“] 10">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="‰ñ“] 10_actr">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+</robot>
