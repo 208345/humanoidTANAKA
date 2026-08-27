@@ -138,7 +138,7 @@ class PyBulletHumanoidEnv(HumanoidEnvBase):
         # ロボットを少し浮かせた状態で読み込む（足が地面に埋まるのを防ぐ）
         self._robot_id = p.loadURDF(
             str(self._urdf_path),
-            basePosition=[0, 0, 0.5],
+            basePosition=[0, 0, 0.2],
             useFixedBase=False,
         )
         
