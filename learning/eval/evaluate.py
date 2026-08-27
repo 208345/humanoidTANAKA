@@ -1,4 +1,4 @@
-﻿"""学習済みモデルの評価・可視化。
+"""学習済みモデルの評価・可視化。
 
     python -m learning.eval.evaluate --urdf model/humanoid.urdf --model learning/policies/latest/final.zip
 
@@ -30,7 +30,10 @@ def main() -> None:
     print(f"  モデル: {args.model}")
 
     # 環境の構築（GUI 表示）
-    reward_fn = StandingReward()
+    from learning.envs.base_env import load_robot_params
+    params = load_robot_params(args.params)
+    num_joints = params['robot']['num_joints']
+    reward_fn = StandingReward(num_joints=num_joints)
     env = PyBulletHumanoidEnv(
         urdf_path=args.urdf,
         params_path=args.params,
@@ -71,7 +74,7 @@ def main() -> None:
                 print(f"  Episode {ep+1}: {status}  報酬={episode_reward:.1f}  ステップ={steps}")
                 total_rewards.append(episode_reward)
                 total_steps_list.append(steps)
-                time.sleep(0.5)
+                time.sleep(2.0)
                 break
 
     # 統計の表示
@@ -83,8 +86,12 @@ def main() -> None:
     print(f"  平均ステップ: {steps_arr.mean():.0f} ± {steps_arr.std():.0f}")
     print(f"  成功率: {(steps_arr >= 1000).sum()}/{args.episodes}")
 
+    print('\nすべてのエピソードが終了しました。5秒後にウィンドウを閉じます...')
+    time.sleep(5.0)
     vec_env.close()
 
 
 if __name__ == "__main__":
     main()
+
+

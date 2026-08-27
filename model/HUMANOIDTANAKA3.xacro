@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <robot name="HUMANOIDTANAKA3" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-<xacro:include filename="$(find HUMANOIDTANAKA3_description)/urdf/materials.xacro" />
-<xacro:include filename="$(find HUMANOIDTANAKA3_description)/urdf/HUMANOIDTANAKA3.trans" />
-<xacro:include filename="$(find HUMANOIDTANAKA3_description)/urdf/HUMANOIDTANAKA3.gazebo" />
+<xacro:include filename="materials.xacro" />
+
+
 <link name="base_link">
   <inertial>
     <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
@@ -13,14 +13,14 @@
   <visual>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/base_link.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/base_link.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -34,14 +34,14 @@
   <visual>
     <origin xyz="0.009671 0.0387 0.128257" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/Leg12_v1_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/Leg12_v1_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.009671 0.0387 0.128257" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/Leg12_v1_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/Leg12_v1_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -55,14 +55,14 @@
   <visual>
     <origin xyz="0.009671 -0.0387 0.128257" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/Leg12_v1__1__1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/Leg12_v1__1__1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.009671 -0.0387 0.128257" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/Leg12_v1__1__1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/Leg12_v1__1__1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -76,14 +76,14 @@
   <visual>
     <origin xyz="0.009671 0.0387 -2.9e-05" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/YAMAMOdogA.step_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/YAMAMOdogA.step_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.009671 0.0387 -2.9e-05" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/YAMAMOdogA.step_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/YAMAMOdogA.step_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -97,14 +97,14 @@
   <visual>
     <origin xyz="0.009671 0.0297 0.064114" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/YAMAMOdogA.stepA_2.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/YAMAMOdogA.stepA_2.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.009671 0.0297 0.064114" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/YAMAMOdogA.stepA_2.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/YAMAMOdogA.stepA_2.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -118,14 +118,14 @@
   <visual>
     <origin xyz="0.009671 -0.0297 0.064114" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/YAMAMOdogA.step_2.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/YAMAMOdogA.step_2.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.009671 -0.0297 0.064114" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/YAMAMOdogA.step_2.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/YAMAMOdogA.step_2.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -139,19 +139,19 @@
   <visual>
     <origin xyz="0.009671 -0.0387 -2.9e-05" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/YAMAMOdogA.stepA_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/YAMAMOdogA.stepA_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.009671 -0.0387 -2.9e-05" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://HUMANOIDTANAKA3_description/meshes/YAMAMOdogA.stepA_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="meshes/YAMAMOdogA.stepA_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
 
-<joint name="‰ñ“] 5" type="revolute">
+<joint name="ï¿½ï¿½] 5" type="revolute">
   <origin xyz="0.0 -0.009 -0.064143" rpy="0 0 0"/>
   <parent link="YAMAMOdogA.stepA_2"/>
   <child link="Leg12_v1_1"/>
@@ -159,7 +159,7 @@
   <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
 </joint>
 
-<joint name="‰ñ“] 6" type="revolute">
+<joint name="ï¿½ï¿½] 6" type="revolute">
   <origin xyz="0.0 0.009 -0.064143" rpy="0 0 0"/>
   <parent link="YAMAMOdogA.step_2"/>
   <child link="Leg12_v1__1__1"/>
@@ -167,7 +167,7 @@
   <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
 </joint>
 
-<joint name="‰ñ“] 7" type="revolute">
+<joint name="ï¿½ï¿½] 7" type="revolute">
   <origin xyz="-0.009671 -0.0387 2.9e-05" rpy="0 0 0"/>
   <parent link="base_link"/>
   <child link="YAMAMOdogA.step_1"/>
@@ -175,7 +175,7 @@
   <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
 </joint>
 
-<joint name="‰ñ“] 8" type="revolute">
+<joint name="ï¿½ï¿½] 8" type="revolute">
   <origin xyz="0.0 0.009 -0.064143" rpy="0 0 0"/>
   <parent link="YAMAMOdogA.step_1"/>
   <child link="YAMAMOdogA.stepA_2"/>
@@ -183,7 +183,7 @@
   <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
 </joint>
 
-<joint name="‰ñ“] 9" type="revolute">
+<joint name="ï¿½ï¿½] 9" type="revolute">
   <origin xyz="0.0 -0.009 -0.064143" rpy="0 0 0"/>
   <parent link="YAMAMOdogA.stepA_1"/>
   <child link="YAMAMOdogA.step_2"/>
@@ -191,7 +191,7 @@
   <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
 </joint>
 
-<joint name="‰ñ“] 10" type="revolute">
+<joint name="ï¿½ï¿½] 10" type="revolute">
   <origin xyz="-0.009671 0.0387 2.9e-05" rpy="0 0 0"/>
   <parent link="base_link"/>
   <child link="YAMAMOdogA.stepA_1"/>
@@ -200,3 +200,5 @@
 </joint>
 
 </robot>
+
+
