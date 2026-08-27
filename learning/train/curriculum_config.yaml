@@ -1,0 +1,59 @@
+﻿# カリキュラム学習の設定
+#
+# 各フェーズは学習の段階を定義する。
+# 卒業条件を満たすと自動的に次のフェーズに遷移する。
+#
+# このファイルは URDF とロボットに合わせてカスタマイズすること。
+# 以下は直立 → 歩行の標準的なカリキュラム。
+
+phases:
+  - name: "Phase 1: 直立維持の基本方策獲得"
+    reward_type: standing
+    reward_params:
+      survival_reward: 5.0
+      fall_penalty: -200.0
+      fall_threshold: 1.0
+      orientation_weight: 5.0
+      velocity_weight: 0.1
+      effort_weight: 0.01
+      barrier_power: 4
+      barrier_weight: 20.0
+    graduation:
+      metric: mean_reward
+      threshold: 4.0
+      window: 100
+      min_steps: 100000
+
+  - name: "Phase 2: 直立の安定化（ペナルティ強化）"
+    reward_type: standing
+    reward_params:
+      survival_reward: 5.0
+      fall_penalty: -200.0
+      fall_threshold: 0.8
+      orientation_weight: 8.0
+      velocity_weight: 0.2
+      effort_weight: 0.01
+      barrier_power: 4
+      barrier_weight: 30.0
+    graduation:
+      metric: mean_reward
+      threshold: 5.0
+      window: 100
+      min_steps: 100000
+
+  - name: "Phase 3: 歩行学習"
+    reward_type: walking
+    reward_params:
+      target_velocity: 0.2
+      velocity_weight: 5.0
+      survival_reward: 3.0
+      fall_penalty: -200.0
+      fall_threshold: 1.0
+      orientation_weight: 3.0
+      effort_weight: 0.005
+      smoothness_weight: 0.1
+    graduation:
+      metric: mean_reward
+      threshold: 3.0
+      window: 200
+      min_steps: 300000
