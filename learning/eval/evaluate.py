@@ -6,6 +6,8 @@
 """
 
 from __future__ import annotations
+import os
+os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 
 import argparse
 import time

@@ -1,4 +1,4 @@
-﻿"""学習のエントリポイント。
+"""学習のエントリポイント。
 
     python -m learning.train.train --urdf model/humanoid.urdf
     python -m learning.train.train --urdf model/humanoid.urdf --resume learning/policies/latest/100k.zip
@@ -12,6 +12,8 @@ cube-sim-rl の改善点をすべて組み込み済み:
 """
 
 from __future__ import annotations
+import os
+os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 
 import argparse
 import os

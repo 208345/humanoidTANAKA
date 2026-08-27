@@ -10,8 +10,8 @@
   <link name="base_link">
     <inertial>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
-      <mass value="0.0"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -30,8 +30,8 @@
   <link name="Leg12_v1_1">
     <inertial>
       <origin rpy="0 0 0" xyz="0.009671 0.0387 0.128257"/>
-      <mass value="0.0"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0.009671 0.0387 0.128257"/>
@@ -50,8 +50,8 @@
   <link name="Leg12_v1__1__1">
     <inertial>
       <origin rpy="0 0 0" xyz="0.009671 -0.0387 0.128257"/>
-      <mass value="0.0"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0.009671 -0.0387 0.128257"/>
@@ -190,4 +190,5 @@
     <limit effort="100" lower="-1.570796" upper="1.570796" velocity="100"/>
   </joint>
 </robot>
+
 
