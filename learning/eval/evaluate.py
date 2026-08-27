@@ -14,6 +14,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
 from learning.envs.pybullet_env import PyBulletHumanoidEnv
+from learning.envs.unity_env import UnityHumanoidEnv
 from learning.train.rewards import StandingReward
 
 
@@ -23,7 +24,17 @@ def main() -> None:
     parser.add_argument("--model", type=str, required=True, help="モデルファイルパス (.zip)")
     parser.add_argument("--vecnorm", type=str, default=None, help="VecNormalize 統計 (.pkl)")
     parser.add_argument("--params", type=str, default="model/params.yaml")
+
     parser.add_argument("--episodes", type=int, default=10, help="評価エピソード数")
+    parser.add_argument(
+        "--backend", type=str, default="pybullet", choices=["pybullet", "unity"],
+        help="シミュレーションバックエンド (pybullet | unity)"
+    )
+    parser.add_argument(
+        "--env-path", type=str, default=None,
+        help="Unityバックエンド使用時のビルド済み実行ファイル (.exe) のパス"
+    )
+
     args = parser.parse_args()
 
     print("=== ヒューマノイド強化学習 評価スクリプト ===")
@@ -34,12 +45,23 @@ def main() -> None:
     params = load_robot_params(args.params)
     num_joints = params['robot']['num_joints']
     reward_fn = StandingReward(num_joints=num_joints)
-    env = PyBulletHumanoidEnv(
-        urdf_path=args.urdf,
-        params_path=args.params,
-        reward_fn=reward_fn,
-        render_mode="human",
-    )
+
+    if args.backend == "unity":
+        env = UnityHumanoidEnv(
+            urdf_path=args.urdf,
+            params_path=args.params,
+            reward_fn=reward_fn,
+            render_mode="human",
+            file_name=args.env_path
+        )
+    else:
+        env = PyBulletHumanoidEnv(
+            urdf_path=args.urdf,
+            params_path=args.params,
+            reward_fn=reward_fn,
+            render_mode="human",
+        )
+
     vec_env = DummyVecEnv([lambda: env])
 
     # VecNormalize の復元

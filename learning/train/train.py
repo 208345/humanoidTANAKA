@@ -24,6 +24,7 @@ from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
 
 from learning.envs.pybullet_env import PyBulletHumanoidEnv
+from learning.envs.unity_env import UnityHumanoidEnv
 from learning.train.callbacks import CheckpointCallback, CurriculumCallback
 from learning.train.curriculum import CurriculumManager
 from learning.train.rewards import StandingReward, WalkingReward
@@ -45,15 +46,30 @@ def make_env(
     reward_fn,
     rank: int,
     seed: int = 42,
+    backend: str = 'pybullet',
+    env_path: str = None,
 ):
     """並列環境の1つを生成するファクトリ関数。"""
     def _init():
-        env = PyBulletHumanoidEnv(
-            urdf_path=urdf_path,
-            params_path=params_path,
-            reward_fn=reward_fn,
-            render_mode=None,
-        )
+
+        if backend == "unity":
+            # Workerごとのポート衝突を防ぐため、Unity側で Worker ID を割り当てる機能などは今回は簡略化
+            # env_path が指定されていればそれを使う
+            env = UnityHumanoidEnv(
+                urdf_path=urdf_path,
+                params_path=params_path,
+                reward_fn=reward_fn,
+                render_mode=None,
+                file_name=env_path
+            )
+        else:
+            env = PyBulletHumanoidEnv(
+                urdf_path=urdf_path,
+                params_path=params_path,
+                reward_fn=reward_fn,
+                render_mode=None,
+            )
+
         env = Monitor(env)
         env.reset(seed=seed + rank)
         return env
@@ -74,7 +90,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="ヒューマノイド強化学習 (PPO) 学習スクリプト"
     )
+
     parser.add_argument(
+        "--backend", type=str, default="pybullet", choices=["pybullet", "unity"],
+        help="シミュレーションバックエンド (pybullet | unity)"
+    )
+    parser.add_argument(
+        "--env-path", type=str, default=None,
+        help="Unityバックエンド使用時のビルド済み実行ファイル (.exe) のパス"
+    )
+    parser.add_argument(
+
         "--urdf", type=str, required=True,
         help="ロボットの URDF ファイルパス",
     )
@@ -136,10 +162,10 @@ def main() -> None:
 
     # --- 環境の構築 ---
     if args.num_envs == 1:
-        vec_env = DummyVecEnv([make_env(args.urdf, args.params, reward_fn, 0, args.seed)])
+        vec_env = DummyVecEnv([make_env(args.urdf, args.params, reward_fn, 0, args.seed, args.backend, args.env_path)])
     else:
         vec_env = SubprocVecEnv([
-            make_env(args.urdf, args.params, reward_fn, i, args.seed)
+            make_env(args.urdf, args.params, reward_fn, i, args.seed, args.backend, args.env_path)
             for i in range(args.num_envs)
         ])
 
