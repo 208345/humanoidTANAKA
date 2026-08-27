@@ -40,6 +40,7 @@ def build_observation(
     joint_velocities: np.ndarray,
     imu_quaternion: np.ndarray,
     imu_angular_velocity: np.ndarray,
+    **kwargs,
 ) -> np.ndarray:
     """観測ベクトルを組み立てる。
 

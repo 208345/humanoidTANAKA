@@ -125,6 +125,7 @@ class PyBulletHumanoidEnv(HumanoidEnvBase):
             "joint_velocities": joint_velocities,
             "imu_quaternion": imu_quaternion,
             "imu_angular_velocity": imu_angular_velocity,
+            "base_linear_velocity": np.array(base_vel, dtype=np.float64),
         }
 
     def _sim_reset(self) -> dict:
@@ -140,6 +141,11 @@ class PyBulletHumanoidEnv(HumanoidEnvBase):
             basePosition=[0, 0, 0.5],
             useFixedBase=False,
         )
+        
+        # Set friction to 1.0 for all links
+        p.changeDynamics(self._robot_id, -1, lateralFriction=1.0)
+        for i in range(p.getNumJoints(self._robot_id)):
+            p.changeDynamics(self._robot_id, i, lateralFriction=1.0)
 
         self._controllable_joints = self._discover_joints()
 
