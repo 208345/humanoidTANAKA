@@ -40,6 +40,7 @@ def build_observation(
     joint_velocities: np.ndarray,
     imu_quaternion: np.ndarray,
     imu_angular_velocity: np.ndarray,
+    base_linear_velocity: np.ndarray | None = None,
     **kwargs,
 ) -> np.ndarray:
     """観測ベクトルを組み立てる。
@@ -49,16 +50,21 @@ def build_observation(
 
     観測の並び:
         [joint_positions (N), joint_velocities (N),
-         imu_quaternion (4), imu_angular_velocity (3)]
-    合計: 2*N + 7 次元
+         imu_quaternion (4), imu_angular_velocity (3),
+         base_linear_velocity (3)]
+    合計: 2*N + 10 次元
 
-    すべて SI 単位 (rad, rad/s)。
+    すべて SI 単位 (rad, rad/s, m/s)。base_linear_velocity は歩行の
+    速度追従に必須（実機では IMU 積分 or 外部計測で埋める）。
     """
+    if base_linear_velocity is None:
+        base_linear_velocity = np.zeros(3, dtype=np.float32)
     return np.concatenate([
         joint_positions,
         joint_velocities,
         imu_quaternion,
         imu_angular_velocity,
+        base_linear_velocity,
     ]).astype(np.float32)
 
 
@@ -107,8 +113,9 @@ class HumanoidEnvBase(gym.Env):
         )
 
         # --- 観測空間 ---
-        # build_observation() の出力に対応: 2*N + 7 次元
-        obs_dim = 2 * self.num_joints + 7
+        # build_observation() の出力に対応: 2*N + 10 次元
+        # (joint_pos N, joint_vel N, quat 4, ang_vel 3, base_lin_vel 3)
+        obs_dim = 2 * self.num_joints + 10
         high = np.inf * np.ones(obs_dim, dtype=np.float32)
         self.observation_space = gym.spaces.Box(
             low=-high, high=high, dtype=np.float32,

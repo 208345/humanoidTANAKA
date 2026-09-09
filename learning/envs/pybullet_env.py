@@ -120,12 +120,31 @@ class PyBulletHumanoidEnv(HumanoidEnvBase):
         )
         imu_angular_velocity = np.array(base_ang_vel, dtype=np.float64)
 
+        # 各足の接地判定・高さ・水平すべり速度。
+        # 「地面をこすりながら滑走する」を報酬側で直接ペナルティにするために使う。
+        foot_contacts = np.zeros(len(self._foot_links), dtype=np.float64)
+        foot_heights = np.zeros(len(self._foot_links), dtype=np.float64)
+        foot_slip = np.zeros(len(self._foot_links), dtype=np.float64)
+        foot_vz = np.zeros(len(self._foot_links), dtype=np.float64)
+        for i, link in enumerate(self._foot_links):
+            contacts = p.getContactPoints(bodyA=self._robot_id, bodyB=self._plane_id, linkIndexA=link)
+            foot_contacts[i] = 1.0 if len(contacts) > 0 else 0.0
+            ls = p.getLinkState(self._robot_id, link, computeLinkVelocity=1)
+            foot_heights[i] = ls[0][2]
+            foot_slip[i] = float(np.hypot(ls[6][0], ls[6][1]))  # 水平方向の速さ [m/s]
+            foot_vz[i] = float(ls[6][2])                          # 上下方向の速度 [m/s]
+
         return {
             "joint_positions": joint_positions,
             "joint_velocities": joint_velocities,
             "imu_quaternion": imu_quaternion,
             "imu_angular_velocity": imu_angular_velocity,
             "base_linear_velocity": np.array(base_vel, dtype=np.float64),
+            "base_height": float(base_pos[2]),
+            "foot_contacts": foot_contacts,
+            "foot_heights": foot_heights,
+            "foot_slip": foot_slip,
+            "foot_vz": foot_vz,
         }
 
     def _sim_reset(self) -> dict:
@@ -133,7 +152,7 @@ class PyBulletHumanoidEnv(HumanoidEnvBase):
 
         p.resetSimulation()
         p.setGravity(0, 0, -9.81)
-        p.loadURDF("plane.urdf")
+        self._plane_id = p.loadURDF("plane.urdf")
 
         # ロボットを少し浮かせた状態で読み込む（足が地面に埋まるのを防ぐ）
         self._robot_id = p.loadURDF(
@@ -142,12 +161,32 @@ class PyBulletHumanoidEnv(HumanoidEnvBase):
             useFixedBase=False,
         )
         
-        # Set friction to 1.0 for all links
+        # 摩擦: 地面と胴体は標準的な値。
+        p.changeDynamics(self._plane_id, -1, lateralFriction=1.0, restitution=0.0)
         p.changeDynamics(self._robot_id, -1, lateralFriction=1.0)
         for i in range(p.getNumJoints(self._robot_id)):
             p.changeDynamics(self._robot_id, i, lateralFriction=1.0)
 
         self._controllable_joints = self._discover_joints()
+
+        # 足リンク（各脚チェーンの末端）を名前で特定する。
+        self._foot_links = [
+            idx for idx in self._controllable_joints
+            if p.getJointInfo(self._robot_id, idx)[12].decode("utf-8")
+            in ("LU4_1", "RU4_1")
+        ]
+
+        # 足だけしっかりグリップさせる（踏みしめる動きを物理的に有利にし、
+        # こすり滑る動きを不利にする）。
+        for link in self._foot_links:
+            p.changeDynamics(
+                self._robot_id, link,
+                lateralFriction=2.0,
+                spinningFriction=0.1,
+                rollingFriction=0.01,
+                frictionAnchor=1,
+                restitution=0.0,
+            )
 
         # 全関節の位置制御モーターをオフにしてトルク制御に切り替え
         for idx in self._controllable_joints:
@@ -155,6 +194,25 @@ class PyBulletHumanoidEnv(HumanoidEnvBase):
                 self._robot_id, idx,
                 controlMode=p.VELOCITY_CONTROL, force=0,
             )
+
+        # 初期姿勢: 全関節ほぼ 0（直立）＋わずかなランダムノイズ。
+        # ノイズは探索を促し、実機の個体差にも頑健にする。
+        rng = getattr(self, "np_random", None)
+        for idx in self._controllable_joints:
+            noise = float(rng.uniform(-0.03, 0.03)) if rng is not None else 0.0
+            p.resetJointState(self._robot_id, idx, targetValue=noise, targetVelocity=0.0)
+
+        # 足裏が地面すれすれに来るようベース高さを合わせる（0.5m から落として
+        # 叩きつけると毎回転倒するため）。全リンクの AABB 最下点を求めて補正。
+        link_ids = [-1] + list(range(p.getNumJoints(self._robot_id)))
+        z_min = min(p.getAABB(self._robot_id, li)[0][2] for li in link_ids)
+        pos, orn = p.getBasePositionAndOrientation(self._robot_id)
+        p.resetBasePositionAndOrientation(
+            self._robot_id,
+            [pos[0], pos[1], pos[2] - z_min + 0.015],
+            orn,
+        )
+        p.resetBaseVelocity(self._robot_id, [0, 0, 0], [0, 0, 0])
 
         # 物理を少し進めて安定させる
         for _ in range(10):

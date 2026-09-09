@@ -1,55 +1,52 @@
 # ロボットの物理パラメータ — このファイルが唯一の正
 #
-# 値の出所:
-#   - PLAパーツ質量/慣性: model/meshes/*.stl から体積・重心・慣性を実測し、
-#     実効密度 1178 kg/m^3 (中実PLA 1240.0 x infill 0.95) を乗算
-#   - サーボ: MG996R x6 (各55 g, ストールトルク約1.0 N·m @6V, 無負荷約6 rad/s)
-#   - 電装(基板+バッテリ+配線): base_link に 150 g を仮置き（要実測）
-#   詳細な内訳は URDF の <inertial> を参照。
-#
-# 単位: 長さ [m] / 質量 [kg] / 角度 [rad] / 慣性 [kg*m^2]
+# HumanoidTNK_FINAL（8サーボ / 各脚: 股ロール + 股ピッチ + 膝 + 足首ピッチ）
+# 質量・慣性: model/meshes/*.stl から体積・重心・慣性を実測し
+#   実効PLA密度 1178 kg/m^3 (中実1240.0 x infill 0.95) を乗算、
+#   MG996R x8 (各55g) と 電装 150g(base, 仮) を合成。詳細は URDF の <inertial>。
+# 単位: 長さ[m] / 質量[kg] / 角度[rad] / 慣性[kg*m^2]
 
 meta:
-  name: humanoid-v1
-  version: 0.2.0
-  status: draft   # 電装重量を実測したら fixed へ
+  name: humanoid-tnk-8dof
+  version: 0.3.0
+  status: draft   # 電装重量とサーボ本トルクを実測したら fixed へ
 
 timing:
   control_hz: 50
   firmware_hz: 1000
-  comm_delay_s: null      # TODO: 実測往復遅延（ドメインrandで使用）
+  comm_delay_s: null
 
 robot:
-  total_mass: 0.763
-  height: 0.322          # 直立時のおおよその全高（脚伸展）
-  num_joints: 6
+  total_mass: 0.951
+  height: null          # TODO: 立位姿勢での全高（起動時に自動計測される）
+  num_joints: 8
 
 actuator:
   model: MG996R
-  count: 6
+  count: 8
   mass_each: 0.055
-  stall_torque_nm: 1.0    # 11 kg·cm @6V。連続使用は ~0.4 以下が安全
+  stall_torque_nm: 1.0
   no_load_speed_rps: 6.0
-  gear: metal
-  torque_feedback: false
 
 links:
-  base_link:            {mass: 0.3522}   # 骨盤プレート + サーボ2 + 電装
-  YAMAMOdogA.step_1:    {mass: 0.0964}   # 右 腿/脛 + サーボ1
-  YAMAMOdogA.stepA_2:   {mass: 0.0964}
-  YAMAMOdogA.stepA_1:   {mass: 0.0964}   # 左 腿/脛 + サーボ1
-  YAMAMOdogA.step_2:    {mass: 0.0964}
-  Leg12_v1_1:           {mass: 0.0128}   # 右 足（サーボ無し）
-  Leg12_v1__1__1:       {mass: 0.0128}   # 左 足
-  l_foot:
-    size: [0.05, 0.03, 0.05]   # [長さ, 幅, 高さ] 支持多角形。狭いので転びやすい
+  base_link  {mass: 0.3359}   # 骨盤 + 股ロールサーボ2 + 電装
+  LU1_1      {mass: 0.0977}   # 左 股ロールリンク + 股ピッチサーボ
+  LU2_1      {mass: 0.0986}   # 左 腿 + 膝サーボ
+  LU3_1      {mass: 0.0986}   # 左 脛 + 足首サーボ
+  LU4_1      {mass: 0.0128}   # 左 足（サーボ無し）
+  RU1_1      {mass: 0.0977}   # 右 股ロールリンク + 股ピッチサーボ
+  RU2_1      {mass: 0.0986}   # 右 腿 + 膝サーボ
+  RU3_1      {mass: 0.0986}   # 右 脛 + 足首サーボ
+  RU4_1      {mass: 0.0128}   # 右 足（サーボ無し）
 
-# 関節（並び順が RobotState.joint_positions と一致）
+# 関節（並び順が RobotState.joint_positions と一致 = PyBullet tree順: 左脚 → 右脚）
 # torque_max = MG996R ストールトルク。lower/upper は URDF 由来（機構的可動域は要確認）
 joints:
-  - {id: 0, name: joint_1, axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
-  - {id: 1, name: joint_2, axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
-  - {id: 2, name: joint_3, axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
-  - {id: 3, name: joint_4, axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
-  - {id: 4, name: joint_5, axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
-  - {id: 5, name: joint_6, axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
+  - {id: 0, name: L_hip_roll, axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
+  - {id: 1, name: L_hip_pitch, axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
+  - {id: 2, name: L_knee, axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
+  - {id: 3, name: L_ankle_pitch, axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
+  - {id: 4, name: R_hip_roll, axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
+  - {id: 5, name: R_hip_pitch, axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
+  - {id: 6, name: R_knee, axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}
+  - {id: 7, name: R_ankle_pitch, axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0}

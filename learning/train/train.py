@@ -178,7 +178,9 @@ def main() -> None:
         vec_env = VecNormalize.load(args.resume_vecnorm, vec_env)
         print(f"  VecNormalize 復元: {args.resume_vecnorm}")
     else:
-        vec_env = VecNormalize(vec_env, norm_obs=True, norm_reward=True, clip_obs=10.0)
+        # norm_reward は切っている: 密な gait shaping 項が、転倒ペナルティ等の
+        # 大きな値でスケールされる走行報酬の正規化で潰れないようにするため。
+        vec_env = VecNormalize(vec_env, norm_obs=True, norm_reward=False, clip_obs=10.0)
 
     # --- PPO ハイエンドパラメータ（ロボティクス制御向け）---
     ppo_kwargs = {
@@ -186,7 +188,7 @@ def main() -> None:
         "n_steps": 4096,
         "batch_size": 256,
         "gamma": 0.995,
-        "ent_coef": 0.005,
+        "ent_coef": 0.01,
     }
     policy_kwargs = dict(net_arch=dict(pi=[256, 256], vf=[256, 256]))
 
@@ -241,6 +243,7 @@ def main() -> None:
         callbacks.append(CurriculumCallback(
             curriculum=curriculum,
             env=vec_env,
+            num_joints=num_joints,
         ))
 
     callback_list = CallbackList(callbacks)
