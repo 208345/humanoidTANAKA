@@ -146,15 +146,39 @@ class WalkingReward:
     def __init__(
         self,
         num_joints: int = 12,
-        target_velocity: float = 0.3,
+        target_velocity: float = 0.2,
         velocity_weight: float = 5.0,
-        survival_reward: float = 3.0,
-        fall_penalty: float = -200.0,
+        survival_reward: float = 6.0,
+        fall_penalty: float = -80.0,
         fall_threshold: float = 1.0,
-        orientation_weight: float = 3.0,
+        orientation_weight: float = 8.0,
         ang_vel_weight: float = 0.05,
-        effort_weight: float = 0.005,
-        smoothness_weight: float = 0.1,
+        effort_weight: float = 0.002,
+        smoothness_weight: float = 0.03,
+        lateral_weight: float = 8.0,
+        heading_weight: float = 9.0,
+        alternation_weight: float = 3.0,
+        double_support_penalty: float = 3.0,
+        swing_weight: float = 100.0,
+        slip_weight: float = 8.0,
+        foot_rest_height: float = 0.014,   # 全関節0で接地時の足リンク原点z（8DOFモデル実測）
+        swing_clear_cap: float = 0.05,
+        lift_vel_weight: float = 3.0,
+        skim_penalty: float = 22.0,
+        skim_target: float = 0.05,
+        height_weight: float = 35.0,
+        target_height: float = 0.172,
+        gait_weight: float = 0.0,
+        yaw_limit: float | None = None,
+        velocity_sharpness: float = 4.0,
+        swing_forward_weight: float = 0.0,
+        min_height: float | None = None,
+        terminate_on_body_contact: bool = False,
+        velocity_gait_gate: bool = False,
+        contact_change_penalty: float = 0.0,
+        swing_ratio: float = 1.0,
+        lag_lift_bonus: float = 0.0,
+        lift_balance_weight: float = 0.0,
     ) -> None:
         self.num_joints = num_joints
         self.target_velocity = target_velocity
@@ -166,6 +190,58 @@ class WalkingReward:
         self.ang_vel_weight = ang_vel_weight
         self.effort_weight = effort_weight
         self.smoothness_weight = smoothness_weight
+        self.lateral_weight = lateral_weight      # 横ズレ(vy)の抑制
+        self.heading_weight = heading_weight      # 向き(yaw)を前方に保つ抑制
+        # 「両足べったり接地したまま滑走する」を防ぎ、片足支持の交互歩行を
+        # 直接要求するための項。effort/smoothness を弱めたのもこれとセット
+        # （動かないほど得、という抜け道を塞ぐ）。
+        self.alternation_weight = alternation_weight
+        self.double_support_penalty = double_support_penalty
+        self.swing_weight = swing_weight            # 遊脚を持ち上げる報酬
+        self.slip_weight = slip_weight              # 接地中の足が滑ることへのペナルティ
+        self.foot_rest_height = foot_rest_height    # 接地時の足リンク原点の高さ(基準)
+        self.swing_clear_cap = swing_clear_cap      # クリアランス報酬の頭打ち
+        self.lift_vel_weight = lift_vel_weight      # 遊脚が上向きに動くこと自体を加点
+        self.skim_penalty = skim_penalty           # 遊脚が地面すれすれ = すり足へのペナルティ
+        self.skim_target = skim_target             # この高さ未満の遊脚を減点
+        self.height_weight = height_weight          # 胴体を低くしすぎない
+        self.target_height = target_height
+        # 位相追従: gait_phase に対して「立脚すべき足は接地、遊脚すべき足は離地」
+        # が合っている割合を加点する。>0 のとき遊脚系の項（b〜d）は
+        # 「実際に浮いている足」ではなく「位相上の遊脚」に掛かる。
+        self.gait_weight = gait_weight
+        self.yaw_limit = yaw_limit                  # |yaw| がこれを超えたら終了 [rad]
+        # 速度追従カーネル exp(-k*err^2) の鋭さ。k=4 だと target=0.15 で
+        # 静止していても 91% 取れてしまい、歩く動機にならない。
+        self.velocity_sharpness = velocity_sharpness
+        # 遊脚を前(+y)へ運ぶこと自体を加点。胴体速度より先に勾配が付くので
+        # 「その場足踏み」の局所解から踏み出しへ誘導できる。
+        self.swing_forward_weight = swing_forward_weight
+        # 座り込み対策（walk4〜7 は胴高 ~0.05m で尻もち姿勢のまま足を振って前進していた。
+        # 胴体が直立していれば tilt 判定を通ってしまうため、高さと足以外の接地で終了させる）
+        self.min_height = min_height
+        self.terminate_on_body_contact = terminate_on_body_contact
+        # walk8/9: 立ったまま ~25Hz で足を震わせて 0.12m/s 滑走し、速度報酬をほぼ満額取っていた。
+        # velocity_gait_gate: 速度報酬に max(0, 2*位相一致-1) を掛ける（両足べた付き=0, 位相どおり=1）。
+        # contact_change_penalty: 足の接地状態が切り替わるたびに減点（位相どおりなら ~3.3回/s, 震えは ~25回/s）。
+        self.velocity_gait_gate = velocity_gait_gate
+        self.contact_change_penalty = contact_change_penalty
+        self._prev_fc = None
+        # 各半周期のうち遊脚にする割合（中央寄せ）。残りは両足接地が正解。
+        # 足首ロールが無く足間隔が広い(~11cm)機体は静的な片足立ちができないため、
+        # 1.0（常にどちらかが遊脚）では要求が厳しすぎる。
+        self.swing_ratio = swing_ratio
+        # 遅れている足（ゲート EMA が低い足）を遊脚期に離地させたときの加点。
+        # walk13 は左足の離地率 ~5% / 右 ~45% の跛行から抜けられなかった。
+        self.lag_lift_bonus = lag_lift_bonus
+        # 位相に依らない「両足とも離地しているか」: 足ごとの離地率 EMA(~1s) の小さい方に比例。
+        # 参照歩容（R,L,L,R の非対称パターン）とは位相窓が合わないため残差学習ではこちらを使う。
+        self.lift_balance_weight = lift_balance_weight
+        self._lift_ema = np.zeros(2)
+        # 速度ゲートは「遊脚期にちゃんと足を上げていたか」の移動平均で決める。
+        # 両足支持期の一致で速度報酬が入ると、すり足でも半分取れてしまうため（walk11）。
+        # 足ごとに持ち、ゲートは低い方を使う（片足だけ上げる跛行を防ぐ, walk12）。
+        self._swing_gate_ema = np.zeros(2)
         self._prev_action = None
 
     def __call__(
@@ -183,18 +259,130 @@ class WalkingReward:
         up_z = 1.0 - 2.0 * (x * x + y * y)
         tilt_angle = math.acos(max(min(float(up_z), 1.0), -1.0))
 
+        # 進行方向(yaw)。スポーン時の向き(0 rad)を「まっすぐ前」の基準とする。
+        yaw = math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
+
         terminated = tilt_angle > self.fall_threshold
+        if self.yaw_limit is not None and abs(yaw) > self.yaw_limit:
+            terminated = True
+        if self.min_height is not None and raw_state.get("base_height", 1.0) < self.min_height:
+            terminated = True
+        if self.terminate_on_body_contact and raw_state.get("body_contact", 0.0) > 0.5:
+            terminated = True
 
         reward = self.survival_reward
 
         # 1. 姿勢報酬
         reward += up_z * self.orientation_weight
 
-        # 2. 速度追従報酬（目標速度との差が小さいほど高報酬）
-        # raw_state に base_velocity が含まれている場合に使用
-        # 含まれていない場合は角速度から推定
-        # TODO: PyBullet の getBaseVelocity() を raw_state に追加する
-        # 暫定的に角速度の x 成分（前進方向の回転）を代理指標とする
+        # 2. 速度追従報酬（前進速度 vx が目標に近いほど高い）
+        base_vel = raw_state.get("base_linear_velocity", None)
+        if base_vel is None:
+            base_vel = np.zeros(3)
+        base_vel = np.asarray(base_vel, dtype=np.float64)
+        # このモデルは左右脚がワールド x 軸に分離しており、前進方向は y 軸。
+        # （検証: 股ピッチ左右逆位相スイングでベースが +y に移動、x はほぼ 0）
+        forward_vel = float(base_vel[1])        # y = 前方向
+        lateral_vel = float(base_vel[0])        # x = 横方向
+
+        vel_err = forward_vel - self.target_velocity
+        vel_reward = math.exp(-self.velocity_sharpness * vel_err * vel_err)  # 0〜1
+        # 学習初期のブートストラップ（とにかく前進していれば少し加点）と合わせ、
+        # 歩容ゲートを掛けてから後段で加算する
+        vel_terms = (vel_reward + max(min(forward_vel, self.target_velocity), 0.0)) * self.velocity_weight
+        gait_gate = 1.0
+
+        # 横滑り・後退のペナルティ（弧を描いて進むのを防ぐ）
+        reward -= abs(lateral_vel) * self.lateral_weight
+        if forward_vel < 0.0:
+            reward += forward_vel * 2.0        # 後退はさらに減点
+
+        # 向きのブレのペナルティ（yaw が 0 からずれる = 曲がって進んでいる）
+        reward -= (yaw ** 2) * self.heading_weight
+
+        # 胴体を低くしすぎない（前かがみで腰を落とす姿勢を抑える）
+        base_height = raw_state.get("base_height")
+        if base_height is not None:
+            reward -= max(0.0, self.target_height - float(base_height)) * self.height_weight
+
+        # 2.5 本物の交互ステップを要求する（"こすり滑り" 対策の本命）。
+        # foot_contacts / foot_heights / foot_slip は pybullet 環境からのみ供給。
+        foot_contacts = raw_state.get("foot_contacts")
+        foot_heights = raw_state.get("foot_heights")
+        foot_slip = raw_state.get("foot_slip")
+        foot_vz = raw_state.get("foot_vz")
+        single_support = 0.0
+        if foot_contacts is not None and len(foot_contacts) == 2:
+            fc = np.asarray(foot_contacts, dtype=np.float64)
+            both_down = float(fc[0] * fc[1])
+            neither_down = float((1.0 - fc[0]) * (1.0 - fc[1]))
+            single_support = 1.0 - both_down - neither_down  # 片足だけ接地なら1
+
+            reward += single_support * self.alternation_weight
+            reward -= both_down * self.double_support_penalty
+
+            if self.lift_balance_weight > 0.0:
+                self._lift_ema = 0.98 * self._lift_ema + 0.02 * (1.0 - fc)
+                reward += float(np.min(self._lift_ema)) * self.lift_balance_weight
+
+            if self._prev_fc is not None:
+                reward -= float(np.sum(np.abs(fc - self._prev_fc))) * self.contact_change_penalty
+            self._prev_fc = fc.copy()
+
+            # 遊脚の定義。位相あり: φ<0.5 は足0、φ>=0.5 は足1 を上げる番。
+            # 位相なし: 従来どおり「いま浮いている足」。
+            gait_phase = raw_state.get("gait_phase")
+            if self.gait_weight > 0.0 and gait_phase is not None:
+                u = (gait_phase % 0.5) / 0.5            # 半周期内の位置 0〜1
+                if abs(u - 0.5) < self.swing_ratio / 2.0:
+                    swing = np.array([1.0, 0.0]) if gait_phase < 0.5 else np.array([0.0, 1.0])
+                else:
+                    swing = np.zeros(2)                  # 両足支持期
+                match = float(np.mean(fc * (1.0 - swing) + (1.0 - fc) * swing))
+                reward += match * self.gait_weight
+                if self.velocity_gait_gate:
+                    if swing.any():   # 遊脚期のみ、その番の足の EMA を更新（べた付き=0, 位相どおり=1）
+                        k = int(np.argmax(swing))
+                        reward += (1.0 - fc[k]) * (1.0 - self._swing_gate_ema[k]) * self.lag_lift_bonus
+                        self._swing_gate_ema[k] = 0.9 * self._swing_gate_ema[k] + 0.1 * max(0.0, 2.0 * match - 1.0)
+                    gait_gate = float(np.min(self._swing_gate_ema))
+            else:
+                swing = 1.0 - fc
+
+            # (a) 接地している足が水平に動く = 地面をこすっている → 強くペナルティ。
+            #     きちんと踏みしめた軸足は速度ゼロのはず。
+            if foot_slip is not None:
+                fs = np.asarray(foot_slip, dtype=np.float64)
+                reward -= float(np.sum(fc * fs)) * self.slip_weight
+
+            # (b) 接地していない足（遊脚）を、基準高さから実際に持ち上げた分だけ加点。
+            if foot_heights is not None:
+                fh = np.asarray(foot_heights, dtype=np.float64)
+                clear = np.clip(fh - self.foot_rest_height, 0.0, self.swing_clear_cap)
+                reward += float(np.sum(swing * clear)) * self.swing_weight
+
+            # (c) 遊脚が「上向きに動いている」こと自体を加点。
+            #     高さが出る前の段階でも勾配が付くので、"足を上げない" 局所解を抜けやすい。
+            if foot_vz is not None:
+                fv = np.asarray(foot_vz, dtype=np.float64)
+                reward += float(np.sum(swing * np.clip(fv, 0.0, 0.5))) * self.lift_vel_weight
+
+            # (d) 遊脚が skim_target 未満 = すり足。これを積極的に損にする
+            #     （"上げたら加点" だけでは倒れるリスクに勝てないため、下限を罰する）。
+            if foot_heights is not None:
+                fh = np.asarray(foot_heights, dtype=np.float64)
+                deficit = np.clip(self.skim_target - (fh - self.foot_rest_height), 0.0, self.skim_target)
+                reward -= float(np.sum(swing * deficit)) * self.skim_penalty
+
+            # (e) 遊脚を前へ運ぶ（上限 0.5 m/s）
+            foot_vy = raw_state.get("foot_vy")
+            if foot_vy is not None and self.swing_forward_weight > 0.0:
+                fvy = np.asarray(foot_vy, dtype=np.float64)
+                reward += float(np.sum(swing * np.clip(fvy, 0.0, 0.5))) * self.swing_forward_weight
+
+        alternation_bonus = single_support
+
+        reward += vel_terms * gait_gate
 
         # 3. 角速度ペナルティ
         reward -= float(np.sum(ang_vel ** 2)) * self.ang_vel_weight
@@ -212,6 +400,20 @@ class WalkingReward:
         if terminated:
             reward += self.fall_penalty
             self._prev_action = None
+            self._prev_fc = None
+            self._swing_gate_ema = np.zeros(2)
+            self._lift_ema = np.zeros(2)
 
-        info = {"tilt_angle": tilt_angle, "up_z": up_z}
+        contact_slip = 0.0
+        if foot_contacts is not None and foot_slip is not None:
+            fc = np.asarray(foot_contacts, dtype=np.float64)
+            fs = np.asarray(foot_slip, dtype=np.float64)
+            denom = float(np.sum(fc))
+            contact_slip = float(np.sum(fc * fs) / denom) if denom > 0 else 0.0
+
+        info = {"tilt_angle": tilt_angle, "up_z": up_z, "yaw": yaw,
+                "forward_vel": forward_vel, "lateral_vel": lateral_vel,
+                "vel_reward": vel_reward, "single_support": alternation_bonus,
+                "contact_slip": contact_slip,
+                "base_height": float(base_height) if base_height is not None else 0.0}
         return reward, terminated, info

@@ -63,11 +63,13 @@ class CurriculumCallback(BaseCallback):
         self,
         curriculum: CurriculumManager,
         env,
+        num_joints: int,
         verbose: int = 1,
     ) -> None:
         super().__init__(verbose)
         self.curriculum = curriculum
         self._env = env  # 報酬関数の差し替えに使用
+        self._num_joints = num_joints
 
     def _on_step(self) -> bool:
         self.curriculum.update_steps(1)
@@ -94,13 +96,15 @@ class CurriculumCallback(BaseCallback):
         reward_params = reward_config["params"]
 
         if reward_type == "standing":
-            reward_fn = StandingReward(**reward_params)
+            reward_fn = StandingReward(num_joints=self._num_joints, **reward_params)
         elif reward_type == "walking":
-            reward_fn = WalkingReward(**reward_params)
+            reward_fn = WalkingReward(num_joints=self._num_joints, **reward_params)
         else:
             raise ValueError(f"未知の報酬タイプ: {reward_type}")
 
-        self._env.set_reward_fn(reward_fn)
+        # SubprocVecEnv の各ワーカープロセスへ反映する必要がある。
+        # vec_env.set_reward_fn(...) は VecEnv に無いため AttributeError になる。
+        self._env.env_method("set_reward_fn", reward_fn)
 
         if self.verbose > 0:
             print(f"  報酬関数: {reward_type}")

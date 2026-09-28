@@ -1,0 +1,46 @@
+# 参照歩容 + 残差 RL 用（model/params_residual.yaml と組で使う）。
+# 参照歩容は単体で ~0.155 m/s 歩くが、フィードバックが無く 20s で 3/10 転倒・20s で yaw -49° 曲がる。
+# 残差で「転ばない・まっすぐ・両足とも上げ続ける」を学ばせる。位相窓ベースの項は
+# 参照のステップパターン(R,L,L,R)と合わないので 0 にし、lift_balance で代替する。
+phases:
+  - name: "Residual: 参照歩容の安定化"
+    reward_type: walking
+    reward_params:
+      target_velocity: 0.15
+      velocity_weight: 10.0
+      velocity_sharpness: 100.0
+      velocity_gait_gate: false
+      survival_reward: 6.0
+      fall_penalty: -200.0
+      fall_threshold: 1.0
+      min_height: 0.10
+      terminate_on_body_contact: true
+      orientation_weight: 8.0
+      ang_vel_weight: 0.05
+      effort_weight: 0.5            # = 残差の大きさ。参照から離れすぎない
+      smoothness_weight: 0.3
+      lateral_weight: 8.0
+      heading_weight: 15.0          # 参照は 20s で -49° 曲がる → まっすぐ歩かせる
+      yaw_limit: 0.6
+      gait_weight: 0.0
+      swing_ratio: 1.0
+      lag_lift_bonus: 0.0
+      lift_balance_weight: 20.0     # 足ごと離地率 EMA の min（参照 ~0.22 → +4.4/step）
+      alternation_weight: 0.0
+      double_support_penalty: 0.0
+      contact_change_penalty: 0.3
+      swing_weight: 100.0           # 実際に浮いている足のクリアランス（上限 20mm）
+      swing_clear_cap: 0.02
+      swing_forward_weight: 5.0
+      slip_weight: 25.0
+      foot_rest_height: 0.014
+      lift_vel_weight: 0.0
+      skim_penalty: 0.0
+      skim_target: 0.01
+      height_weight: 35.0
+      target_height: 0.12           # 参照歩容の胴高 ~0.133
+    graduation:
+      metric: mean_reward
+      threshold: 1.0e9
+      window: 200
+      min_steps: 1000000000

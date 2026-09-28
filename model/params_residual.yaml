@@ -54,3 +54,9 @@ joints:
   - {id: 5, name: R_hip_pitch,   axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0, action_scale: 0.75}
   - {id: 6, name: R_knee,        axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0, action_scale: 1.0}
   - {id: 7, name: R_ankle_pitch, axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0, action_scale: 0.5}
+
+# --- 参照歩容 + 残差制御（params.yaml との差分はこのブロックだけ）---
+# 関節目標角 = reference_gait(位相) + action * residual_scale。gait_period は参照の T で上書きされる。
+reference_gait:
+  file: reference_gait.yaml
+  residual_scale: [0.15, 0.2, 0.25, 0.2, 0.15, 0.2, 0.25, 0.2]   # L roll,pitch,knee,ankle, R ... [rad]

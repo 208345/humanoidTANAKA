@@ -59,7 +59,8 @@ class UnityHumanoidEnv(HumanoidEnvBase):
             "joint_positions": obs_array[0:n],
             "joint_velocities": obs_array[n:2*n],
             "imu_quaternion": obs_array[2*n:2*n+4],
-            "imu_angular_velocity": obs_array[2*n+4:2*n+7]
+            "imu_angular_velocity": obs_array[2*n+4:2*n+7],
+            "base_linear_velocity": __import__('numpy').array([0.0, 0.0, 0.0], dtype=__import__('numpy').float64)
         }
 
     def close(self):

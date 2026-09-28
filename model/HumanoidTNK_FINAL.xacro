@@ -1,0 +1,260 @@
+<?xml version="1.0" ?>
+<robot name="HumanoidTNK_FINAL" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<xacro:include filename="$(find HumanoidTNK_FINAL_description)/urdf/materials.xacro" />
+<xacro:include filename="$(find HumanoidTNK_FINAL_description)/urdf/HumanoidTNK_FINAL.trans" />
+<xacro:include filename="$(find HumanoidTNK_FINAL_description)/urdf/HumanoidTNK_FINAL.gazebo" />
+<link name="base_link">
+  <inertial>
+    <origin xyz="-0.035 0.10279289341113865 0.010349364700568861" rpy="0 0 0"/>
+    <mass value="0.5061463781090482"/>
+    <inertia ixx="0.000138" iyy="0.000217" izz="0.000191" ixy="0.0" iyz="-2e-06" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="LU1_1">
+  <inertial>
+    <origin xyz="0.014737018535811445 -0.0371713782757851 -4.203744456127302e-05" rpy="0 0 0"/>
+    <mass value="0.2844526194367301"/>
+    <inertia ixx="8.8e-05" iyy="4.1e-05" izz="0.000107" ixy="4e-06" iyz="-0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.02 -0.078 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/LU1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.02 -0.078 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/LU1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="RU1_1">
+  <inertial>
+    <origin xyz="-0.014737018535811441 -0.037171378275785136 -4.203744456126401e-05" rpy="0 0 0"/>
+    <mass value="0.28445261943673006"/>
+    <inertia ixx="8.8e-05" iyy="4.1e-05" izz="0.000107" ixy="-4e-06" iyz="-0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.05 -0.078 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/RU1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.05 -0.078 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/RU1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="RU2_1">
+  <inertial>
+    <origin xyz="-0.0067332395533725165 -5.440092820663267e-15 -0.049354087833163966" rpy="0 0 0"/>
+    <mass value="0.2906409525472912"/>
+    <inertia ixx="0.00012" iyy="0.000138" izz="3.9e-05" ixy="-0.0" iyz="0.0" ixz="-5e-06"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.08975 -0.0273 -5e-05" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/RU2_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.08975 -0.0273 -5e-05" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/RU2_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="LU2_1">
+  <inertial>
+    <origin xyz="0.006733239553372541 -5.401928904191777e-15 -0.049354087833163994" rpy="0 0 0"/>
+    <mass value="0.2906409525472912"/>
+    <inertia ixx="0.00012" iyy="0.000138" izz="3.9e-05" ixy="0.0" iyz="0.0" ixz="5e-06"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.01975 -0.0273 -5e-05" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/LU2_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.01975 -0.0273 -5e-05" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/LU2_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="RU3_1">
+  <inertial>
+    <origin xyz="0.006733239553372503 5.7592819402429996e-15 -0.049354087833164" rpy="0 0 0"/>
+    <mass value="0.2906409525472912"/>
+    <inertia ixx="0.00012" iyy="0.000138" izz="3.9e-05" ixy="-0.0" iyz="-0.0" ixz="5e-06"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.07225 -0.0273 0.0644" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/RU3_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.07225 -0.0273 0.0644" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/RU3_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="LU3_1">
+  <inertial>
+    <origin xyz="-0.006733239553372511 5.793976409762536e-15 -0.04935408783316399" rpy="0 0 0"/>
+    <mass value="0.2906409525472912"/>
+    <inertia ixx="0.00012" iyy="0.000138" izz="3.9e-05" ixy="0.0" iyz="-0.0" ixz="-5e-06"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.00225 -0.0273 0.0644" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/LU3_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.00225 -0.0273 0.0644" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/LU3_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="LU4_1">
+  <inertial>
+    <origin xyz="-0.01975 -0.0273 0.12885" rpy="0 0 0"/>
+    <mass value="0.0"/>
+    <inertia ixx="0.0" iyy="0.0" izz="0.0" ixy="0.0" iyz="0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.01975 -0.0273 0.12885" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/LU4_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.01975 -0.0273 0.12885" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/LU4_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="RU4_1">
+  <inertial>
+    <origin xyz="0.08975 -0.0273 0.12885" rpy="0 0 0"/>
+    <mass value="0.0"/>
+    <inertia ixx="0.0" iyy="0.0" izz="0.0" ixy="0.0" iyz="0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.08975 -0.0273 0.12885" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/RU4_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.08975 -0.0273 0.12885" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://HumanoidTNK_FINAL_description/meshes/RU4_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="‰ñ“] 1" type="revolute">
+  <origin xyz="-0.02 0.078 0.0001" rpy="0 0 0"/>
+  <parent link="base_link"/>
+  <child link="LU1_1"/>
+  <axis xyz="0.0 -1.0 -0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="‰ñ“] 2" type="revolute">
+  <origin xyz="-0.05 0.078 0.0001" rpy="0 0 0"/>
+  <parent link="base_link"/>
+  <child link="RU1_1"/>
+  <axis xyz="0.0 -1.0 -0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="‰ñ“] 3" type="revolute">
+  <origin xyz="-0.03975 -0.0507 -5e-05" rpy="0 0 0"/>
+  <parent link="RU1_1"/>
+  <child link="RU2_1"/>
+  <axis xyz="-1.0 0.0 0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="‰ñ“] 4" type="revolute">
+  <origin xyz="0.03975 -0.0507 -5e-05" rpy="0 0 0"/>
+  <parent link="LU1_1"/>
+  <child link="LU2_1"/>
+  <axis xyz="1.0 0.0 -0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="‰ñ“] 5" type="revolute">
+  <origin xyz="0.0175 0.0 -0.06445" rpy="0 0 0"/>
+  <parent link="RU2_1"/>
+  <child link="RU3_1"/>
+  <axis xyz="1.0 0.0 0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="‰ñ“] 6" type="revolute">
+  <origin xyz="-0.0175 0.0 -0.06445" rpy="0 0 0"/>
+  <parent link="LU2_1"/>
+  <child link="LU3_1"/>
+  <axis xyz="1.0 0.0 -0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="‰ñ“] 7" type="revolute">
+  <origin xyz="0.0175 0.0 -0.06445" rpy="0 0 0"/>
+  <parent link="LU3_1"/>
+  <child link="LU4_1"/>
+  <axis xyz="1.0 0.0 -0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="‰ñ“] 8" type="revolute">
+  <origin xyz="-0.0175 0.0 -0.06445" rpy="0 0 0"/>
+  <parent link="RU3_1"/>
+  <child link="RU4_1"/>
+  <axis xyz="-1.0 0.0 0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+</robot>

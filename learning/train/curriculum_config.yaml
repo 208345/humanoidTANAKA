@@ -1,20 +1,23 @@
-﻿# カリキュラム学習の設定
+# カリキュラム学習の設定
 #
-# 各フェーズは学習の段階を定義する。
-# 卒業条件を満たすと自動的に次のフェーズに遷移する。
+# 各フェーズは学習の段階を定義する。卒業条件を満たすと自動的に次へ遷移する。
 #
-# このファイルは URDF とロボットに合わせてカスタマイズすること。
-# 以下は直立 → 歩行の標準的なカリキュラム。
+# 重要: reward_params は callbacks.py._apply_phase で
+#   WalkingReward(num_joints=N, **reward_params)
+# のように **完全な上書き** として渡される。ここに書かなかったパラメータは
+# rewards.py の __init__ 既定値が黙って使われる。既定値が変わると挙動が
+# ずれて原因が追いにくいので、Phase 3 は全パラメータを明示列挙する。
 
 phases:
   - name: "Phase 1: 直立維持の基本方策獲得"
     reward_type: standing
+    # StandingReward が __call__ で実際に使うのはこの8つ（height_target/height_weight は未使用）
     reward_params:
       survival_reward: 5.0
       fall_penalty: -200.0
       fall_threshold: 1.0
       orientation_weight: 5.0
-      velocity_weight: 0.1
+      velocity_weight: 0.1        # ang_vel ペナルティの重み（振動抑制）
       effort_weight: 0.01
       barrier_power: 4
       barrier_weight: 20.0
@@ -43,15 +46,43 @@ phases:
 
   - name: "Phase 3: 歩行学習"
     reward_type: walking
+    # WalkingReward の全パラメータを明示。
+    # walk2 の評価で「足を ~20Hz で震わせて片足支持/遊脚ボーナスを稼ぐ」抜け道が
+    # 見つかったため、gait_period(0.6s) の位相に接地を合わせる gait_weight に置き換え、
+    # 実接地ベースの alternation/double_support/lift_vel は 0 にした。
     reward_params:
-      target_velocity: 0.2
-      velocity_weight: 5.0
-      survival_reward: 3.0
+      target_velocity: 0.15        # 全高~0.2m の機体。まず確実に歩ける速度から
+      velocity_weight: 15.0        # 5→15: walk4 は位相一致79%の足踏みを獲得したが前進 ~0 で停滞（9M）
+      velocity_sharpness: 100.0    # exp(-100 err^2): 静止 10%, 0.1m/s で 78%（旧 4.0 は静止でも 91%）
+      survival_reward: 6.0
+      velocity_gait_gate: true     # 速度報酬 × max(0, 2*位相一致-1)（walk9: 震え滑走で速度報酬を満額取得）
+      contact_change_penalty: 2.0  # 接地の切り替え1回ごとの減点（震え ~25回/s → -50/s 相当）
+      swing_forward_weight: 20.0   # 遊脚の前向き速度への加点（walk5: 足踏みのみ→10 / walk7: 歩幅~1.7cmと小さい→20）
       fall_penalty: -200.0
       fall_threshold: 1.0
-      orientation_weight: 3.0
-      effort_weight: 0.005
-      smoothness_weight: 0.1
+      orientation_weight: 8.0
+      ang_vel_weight: 0.05
+      effort_weight: 0.002
+      smoothness_weight: 0.5       # walk7: 1.0→0.5 大きな踏み出しを許す。 0.03→0.1→1.0: walk3 は ~25Hz で足を震わせて滑走していた（MG996R では実現不能）
+      lateral_weight: 8.0          # 横速度 |vx| のペナルティ
+      heading_weight: 9.0          # yaw^2 のペナルティ（曲進の抑制）
+      min_height: 0.10             # 胴高 < 0.10m で終了（直立 ~0.168）。walk4〜7 は ~0.05m で座り込み前進していた
+      terminate_on_body_contact: true  # 足以外が地面に触れたら終了
+      yaw_limit: 0.6               # |yaw| > 約35° で終了（walk2 は最大85°回っていた）
+      lag_lift_bonus: 10.0         # 離地できていない側の足を上げたら加点（walk13: 左足離地率 ~5% の跛行）
+      swing_ratio: 0.5             # 半周期の中央50%だけ遊脚、残りは両足接地（静的片足立ち不能な機体向け）
+      gait_weight: 20.0            # 位相どおりの接地/離地の一致率（8→20: walk3 は一致率50%=偶然レベル）
+      alternation_weight: 0.0      # 実接地ベースの片足支持ボーナス（震えで稼げるので廃止）
+      double_support_penalty: 0.0
+      swing_weight: 100.0          # 位相上の遊脚のクリアランス報酬（頭打ち swing_clear_cap）
+      slip_weight: 25.0            # 接地脚の水平すべりペナルティ（8→25: 震え滑走対策）
+      foot_rest_height: 0.014      # 静定時の足リンク原点 z（8DOF実測）
+      swing_clear_cap: 0.03        # 30mm で頭打ち（脚長~0.15m の機体に合わせる）
+      lift_vel_weight: 0.0         # 上下動そのものへの加点は震えを誘うので廃止
+      skim_penalty: 22.0           # 位相上の遊脚が低すぎる = すり足
+      skim_target: 0.02
+      height_weight: 35.0          # 胴体を落としすぎない
+      target_height: 0.15          # 8DOF静定時 base_z≈0.1694（実測）。軽いクラウチは許容
     graduation:
       metric: mean_reward
       threshold: 3.0
