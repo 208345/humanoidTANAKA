@@ -1,11 +1,11 @@
 # policies — 学習済みモデル
 
-重みファイルは Git に入れない（大きいため）。
-GitHub Releases か外部ストレージに置き、ここに索引を書く。
+学習中のチェックポイントは大量・大容量なので Git に入れない（.gitignore で除外）。
+代表的な小さいモデル（数MB）だけ `git add -f` でこのフォルダに入れ、ここに索引を書く。
 
 | 名前 | 学習日 | 環境のコミット | sim成績 | 実機成績 | 場所 |
 |---|---|---|---|---|---|
-| res1_best（参照歩容 + 残差 PPO, 22.8M step） | 2026-09-26 | 「参照歩容 + 残差RLで8DOF歩行を獲得」のコミット | PyBullet 20s×10: 転倒 0/10、0.128 m/s、両足交互離地 (L34%/R27%)、3N 外乱でも転倒 0/10 | 未 | 学習PCの WSL `~/humanoid_runs/res1/best.zip`（+ `best_vecnorm.pkl`）。未アップロード |
+| res1_best（参照歩容 + 残差 PPO, 22.8M step） | 2026-09-26 | 621d033 | PyBullet 20s×10: 転倒 0/10、0.128 m/s、両足交互離地 (L34%/R27%)、3N 外乱でも転倒 0/10 | 未 | `learning/policies/res1_best/best.zip` + `best_vecnorm.pkl`（リポジトリ内） |
 
 ### res1_best の再現・確認方法
 
@@ -21,6 +21,7 @@ python -m learning.train.train --urdf model/humanoid.urdf \
 python -m learning.eval.gait_metrics --urdf model/humanoid.urdf --model <ckpt>.zip --vecnorm <ckpt>_vecnorm.pkl \
   --params model/params_residual.yaml --curriculum learning/train/curriculum_residual.yaml --episodes 10
 python -m learning.eval.record_video <ckpt(拡張子なし)> out.mp4 40 --residual
+# 例: python -m learning.eval.record_video learning/policies/res1_best/best res1.mp4 40 --residual
 ```
 
 参照歩容だけ（学習なし）でも歩くが、フィードバックが無いので 20s で 9/10 転倒・大きく曲がる。
