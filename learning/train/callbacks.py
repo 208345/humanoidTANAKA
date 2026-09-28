@@ -102,7 +102,9 @@ class CurriculumCallback(BaseCallback):
         else:
             raise ValueError(f"未知の報酬タイプ: {reward_type}")
 
-        self._env.set_reward_fn(reward_fn)
+        # SubprocVecEnv の各ワーカープロセスへ反映する必要がある。
+        # vec_env.set_reward_fn(...) は VecEnv に無いため AttributeError になる。
+        self._env.env_method("set_reward_fn", reward_fn)
 
         if self.verbose > 0:
             print(f"  報酬関数: {reward_type}")

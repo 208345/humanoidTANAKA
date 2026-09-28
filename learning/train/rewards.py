@@ -168,6 +168,17 @@ class WalkingReward:
         skim_target: float = 0.05,
         height_weight: float = 35.0,
         target_height: float = 0.172,
+        gait_weight: float = 0.0,
+        yaw_limit: float | None = None,
+        velocity_sharpness: float = 4.0,
+        swing_forward_weight: float = 0.0,
+        min_height: float | None = None,
+        terminate_on_body_contact: bool = False,
+        velocity_gait_gate: bool = False,
+        contact_change_penalty: float = 0.0,
+        swing_ratio: float = 1.0,
+        lag_lift_bonus: float = 0.0,
+        lift_balance_weight: float = 0.0,
     ) -> None:
         self.num_joints = num_joints
         self.target_velocity = target_velocity
@@ -195,6 +206,42 @@ class WalkingReward:
         self.skim_target = skim_target             # この高さ未満の遊脚を減点
         self.height_weight = height_weight          # 胴体を低くしすぎない
         self.target_height = target_height
+        # 位相追従: gait_phase に対して「立脚すべき足は接地、遊脚すべき足は離地」
+        # が合っている割合を加点する。>0 のとき遊脚系の項（b〜d）は
+        # 「実際に浮いている足」ではなく「位相上の遊脚」に掛かる。
+        self.gait_weight = gait_weight
+        self.yaw_limit = yaw_limit                  # |yaw| がこれを超えたら終了 [rad]
+        # 速度追従カーネル exp(-k*err^2) の鋭さ。k=4 だと target=0.15 で
+        # 静止していても 91% 取れてしまい、歩く動機にならない。
+        self.velocity_sharpness = velocity_sharpness
+        # 遊脚を前(+y)へ運ぶこと自体を加点。胴体速度より先に勾配が付くので
+        # 「その場足踏み」の局所解から踏み出しへ誘導できる。
+        self.swing_forward_weight = swing_forward_weight
+        # 座り込み対策（walk4〜7 は胴高 ~0.05m で尻もち姿勢のまま足を振って前進していた。
+        # 胴体が直立していれば tilt 判定を通ってしまうため、高さと足以外の接地で終了させる）
+        self.min_height = min_height
+        self.terminate_on_body_contact = terminate_on_body_contact
+        # walk8/9: 立ったまま ~25Hz で足を震わせて 0.12m/s 滑走し、速度報酬をほぼ満額取っていた。
+        # velocity_gait_gate: 速度報酬に max(0, 2*位相一致-1) を掛ける（両足べた付き=0, 位相どおり=1）。
+        # contact_change_penalty: 足の接地状態が切り替わるたびに減点（位相どおりなら ~3.3回/s, 震えは ~25回/s）。
+        self.velocity_gait_gate = velocity_gait_gate
+        self.contact_change_penalty = contact_change_penalty
+        self._prev_fc = None
+        # 各半周期のうち遊脚にする割合（中央寄せ）。残りは両足接地が正解。
+        # 足首ロールが無く足間隔が広い(~11cm)機体は静的な片足立ちができないため、
+        # 1.0（常にどちらかが遊脚）では要求が厳しすぎる。
+        self.swing_ratio = swing_ratio
+        # 遅れている足（ゲート EMA が低い足）を遊脚期に離地させたときの加点。
+        # walk13 は左足の離地率 ~5% / 右 ~45% の跛行から抜けられなかった。
+        self.lag_lift_bonus = lag_lift_bonus
+        # 位相に依らない「両足とも離地しているか」: 足ごとの離地率 EMA(~1s) の小さい方に比例。
+        # 参照歩容（R,L,L,R の非対称パターン）とは位相窓が合わないため残差学習ではこちらを使う。
+        self.lift_balance_weight = lift_balance_weight
+        self._lift_ema = np.zeros(2)
+        # 速度ゲートは「遊脚期にちゃんと足を上げていたか」の移動平均で決める。
+        # 両足支持期の一致で速度報酬が入ると、すり足でも半分取れてしまうため（walk11）。
+        # 足ごとに持ち、ゲートは低い方を使う（片足だけ上げる跛行を防ぐ, walk12）。
+        self._swing_gate_ema = np.zeros(2)
         self._prev_action = None
 
     def __call__(
@@ -216,6 +263,12 @@ class WalkingReward:
         yaw = math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
 
         terminated = tilt_angle > self.fall_threshold
+        if self.yaw_limit is not None and abs(yaw) > self.yaw_limit:
+            terminated = True
+        if self.min_height is not None and raw_state.get("base_height", 1.0) < self.min_height:
+            terminated = True
+        if self.terminate_on_body_contact and raw_state.get("body_contact", 0.0) > 0.5:
+            terminated = True
 
         reward = self.survival_reward
 
@@ -227,15 +280,17 @@ class WalkingReward:
         if base_vel is None:
             base_vel = np.zeros(3)
         base_vel = np.asarray(base_vel, dtype=np.float64)
-        forward_vel = float(base_vel[0])        # x = 前方向
-        lateral_vel = float(base_vel[1])        # y = 横方向
+        # このモデルは左右脚がワールド x 軸に分離しており、前進方向は y 軸。
+        # （検証: 股ピッチ左右逆位相スイングでベースが +y に移動、x はほぼ 0）
+        forward_vel = float(base_vel[1])        # y = 前方向
+        lateral_vel = float(base_vel[0])        # x = 横方向
 
         vel_err = forward_vel - self.target_velocity
-        vel_reward = math.exp(-4.0 * vel_err * vel_err)       # 0〜1
-        reward += vel_reward * self.velocity_weight
-
-        # 学習初期のブートストラップ: とにかく前進していれば少し加点
-        reward += max(min(forward_vel, self.target_velocity), 0.0) * self.velocity_weight
+        vel_reward = math.exp(-self.velocity_sharpness * vel_err * vel_err)  # 0〜1
+        # 学習初期のブートストラップ（とにかく前進していれば少し加点）と合わせ、
+        # 歩容ゲートを掛けてから後段で加算する
+        vel_terms = (vel_reward + max(min(forward_vel, self.target_velocity), 0.0)) * self.velocity_weight
+        gait_gate = 1.0
 
         # 横滑り・後退のペナルティ（弧を描いて進むのを防ぐ）
         reward -= abs(lateral_vel) * self.lateral_weight
@@ -266,6 +321,34 @@ class WalkingReward:
             reward += single_support * self.alternation_weight
             reward -= both_down * self.double_support_penalty
 
+            if self.lift_balance_weight > 0.0:
+                self._lift_ema = 0.98 * self._lift_ema + 0.02 * (1.0 - fc)
+                reward += float(np.min(self._lift_ema)) * self.lift_balance_weight
+
+            if self._prev_fc is not None:
+                reward -= float(np.sum(np.abs(fc - self._prev_fc))) * self.contact_change_penalty
+            self._prev_fc = fc.copy()
+
+            # 遊脚の定義。位相あり: φ<0.5 は足0、φ>=0.5 は足1 を上げる番。
+            # 位相なし: 従来どおり「いま浮いている足」。
+            gait_phase = raw_state.get("gait_phase")
+            if self.gait_weight > 0.0 and gait_phase is not None:
+                u = (gait_phase % 0.5) / 0.5            # 半周期内の位置 0〜1
+                if abs(u - 0.5) < self.swing_ratio / 2.0:
+                    swing = np.array([1.0, 0.0]) if gait_phase < 0.5 else np.array([0.0, 1.0])
+                else:
+                    swing = np.zeros(2)                  # 両足支持期
+                match = float(np.mean(fc * (1.0 - swing) + (1.0 - fc) * swing))
+                reward += match * self.gait_weight
+                if self.velocity_gait_gate:
+                    if swing.any():   # 遊脚期のみ、その番の足の EMA を更新（べた付き=0, 位相どおり=1）
+                        k = int(np.argmax(swing))
+                        reward += (1.0 - fc[k]) * (1.0 - self._swing_gate_ema[k]) * self.lag_lift_bonus
+                        self._swing_gate_ema[k] = 0.9 * self._swing_gate_ema[k] + 0.1 * max(0.0, 2.0 * match - 1.0)
+                    gait_gate = float(np.min(self._swing_gate_ema))
+            else:
+                swing = 1.0 - fc
+
             # (a) 接地している足が水平に動く = 地面をこすっている → 強くペナルティ。
             #     きちんと踏みしめた軸足は速度ゼロのはず。
             if foot_slip is not None:
@@ -276,22 +359,30 @@ class WalkingReward:
             if foot_heights is not None:
                 fh = np.asarray(foot_heights, dtype=np.float64)
                 clear = np.clip(fh - self.foot_rest_height, 0.0, self.swing_clear_cap)
-                reward += float(np.sum((1.0 - fc) * clear)) * self.swing_weight
+                reward += float(np.sum(swing * clear)) * self.swing_weight
 
             # (c) 遊脚が「上向きに動いている」こと自体を加点。
             #     高さが出る前の段階でも勾配が付くので、"足を上げない" 局所解を抜けやすい。
             if foot_vz is not None:
                 fv = np.asarray(foot_vz, dtype=np.float64)
-                reward += float(np.sum((1.0 - fc) * np.clip(fv, 0.0, 0.5))) * self.lift_vel_weight
+                reward += float(np.sum(swing * np.clip(fv, 0.0, 0.5))) * self.lift_vel_weight
 
             # (d) 遊脚が skim_target 未満 = すり足。これを積極的に損にする
             #     （"上げたら加点" だけでは倒れるリスクに勝てないため、下限を罰する）。
             if foot_heights is not None:
                 fh = np.asarray(foot_heights, dtype=np.float64)
                 deficit = np.clip(self.skim_target - (fh - self.foot_rest_height), 0.0, self.skim_target)
-                reward -= float(np.sum((1.0 - fc) * deficit)) * self.skim_penalty
+                reward -= float(np.sum(swing * deficit)) * self.skim_penalty
+
+            # (e) 遊脚を前へ運ぶ（上限 0.5 m/s）
+            foot_vy = raw_state.get("foot_vy")
+            if foot_vy is not None and self.swing_forward_weight > 0.0:
+                fvy = np.asarray(foot_vy, dtype=np.float64)
+                reward += float(np.sum(swing * np.clip(fvy, 0.0, 0.5))) * self.swing_forward_weight
 
         alternation_bonus = single_support
+
+        reward += vel_terms * gait_gate
 
         # 3. 角速度ペナルティ
         reward -= float(np.sum(ang_vel ** 2)) * self.ang_vel_weight
@@ -309,6 +400,9 @@ class WalkingReward:
         if terminated:
             reward += self.fall_penalty
             self._prev_action = None
+            self._prev_fc = None
+            self._swing_gate_ema = np.zeros(2)
+            self._lift_ema = np.zeros(2)
 
         contact_slip = 0.0
         if foot_contacts is not None and foot_slip is not None:

@@ -1,0 +1,21 @@
+# 探索で見つけた開ループ歩容（学習なし）。2026-09-26, learning 外の gait_search で発見。
+# 各脚の関節目標角 [rad]（L: s=+1, m=+1, th=0 / R: s=-1, m=-1, th=pi, w=2*pi/T）:
+#   hip_roll_i  = s_i * r_add + r_amp * sin(w t + phr)       # 揺動は両脚同指令（hip_roll 軸が非ミラー）
+#   hip_pitch_i = m_i * (p_off + p_amp * sin(w t + th_i))
+#   knee_i      = m_i * (k_off + k_amp * max(0, sin(w t + th_i + phk)))
+#   ankle_i     = m_i * (a_off + a_amp * sin(w t + th_i + pha))
+# 開始 0.5s で振幅 0→1 にランプ。関節順は params.yaml と同じ（L_hip_roll, L_hip_pitch, L_knee, L_ankle, R_...）。
+# PyBullet 20s x10: 7/10 完走, 前進 ~3.1 m/20s (~0.155 m/s), 離地率 L22% R29%, 片足支持 49%, 足上げ ~13mm, 胴高 0.133。
+# フィードバック無しなので外乱で転倒する（10回中3回）。安定化は残差 RL で行う想定。
+T: 0.523
+r_add: 0.126
+r_amp: 0.317
+phr: -0.216
+p_off: -0.116
+p_amp: -0.129
+k_off: 0.523
+k_amp: 0.573
+phk: -3.142
+a_off: -0.297
+a_amp: -0.309
+pha: -2.732

@@ -14,6 +14,13 @@ cube-sim-rl の改善点をすべて組み込み済み:
 from __future__ import annotations
 import os
 os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
+# BLAS/OpenMP のスレッド数を 1 に固定する。SubprocVecEnv の各ワーカーが
+# numpy 経由で多数のスレッドを立てると、コア数を超えて奪い合い
+# (oversubscription) が起き、並列化してもスループットが伸びない。
+# torch/numpy を import する前に設定する必要がある。
+for _v in ('OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS',
+           'NUMEXPR_NUM_THREADS', 'VECLIB_MAXIMUM_THREADS'):
+    os.environ.setdefault(_v, '1')
 
 import argparse
 import os
@@ -125,6 +132,10 @@ def main() -> None:
         help="カリキュラム設定ファイルパス (.yaml)",
     )
     parser.add_argument(
+        "--start-phase", type=int, default=0,
+        help="カリキュラムの開始フェーズ番号 (0始まり)。--resume で歩行フェーズから再開するときに使う",
+    )
+    parser.add_argument(
         "--total-timesteps", type=int, default=500_000,
         help="総学習ステップ数",
     )
@@ -135,6 +146,10 @@ def main() -> None:
     parser.add_argument(
         "--save-path", type=str, default="learning/policies/latest",
         help="チェックポイントの保存先",
+    )
+    parser.add_argument(
+        "--log-std-init", type=float, default=0.0,
+        help="方策の初期 log std（残差学習では小さめ、例 -1.0）",
     )
     parser.add_argument(
         "--seed", type=int, default=42,
@@ -190,7 +205,7 @@ def main() -> None:
         "gamma": 0.995,
         "ent_coef": 0.01,
     }
-    policy_kwargs = dict(net_arch=dict(pi=[256, 256], vf=[256, 256]))
+    policy_kwargs = dict(net_arch=dict(pi=[256, 256], vf=[256, 256]), log_std_init=args.log_std_init)
 
     # --- モデルの構築 ---
     save_path = Path(args.save_path)
@@ -229,6 +244,7 @@ def main() -> None:
     curriculum = None
     if args.curriculum:
         curriculum = CurriculumManager(args.curriculum)
+        curriculum.current_phase_idx = args.start_phase
         phase = curriculum.current_phase
         print(f"  カリキュラム: {phase.name}")
 
@@ -237,8 +253,10 @@ def main() -> None:
         initial_reward = make_reward_fn(
             reward_config["type"], num_joints=num_joints, **reward_config["params"]
         )
-        # SubprocVecEnv の場合は各環境への適用が必要
-        # → 初期生成時に reward_fn を渡しているので、カリキュラムコールバックで更新
+        # 環境は --reward-type の既定パラメータで生成済みなので、開始フェーズの
+        # reward_params を全サブプロセスへ適用する（これが無いと Phase 1 の設定値や
+        # --start-phase の報酬が効かない）。
+        vec_env.env_method("set_reward_fn", initial_reward)
 
         callbacks.append(CurriculumCallback(
             curriculum=curriculum,
