@@ -1,0 +1,51 @@
+# ロボットの物理パラメータ — 走行（ランニング）用設定
+# reference_run.yaml と組で使用し、高速ピッチ歩行/走行を学習させる。
+
+meta:
+  name: humanoid-tnk-8dof-run
+  version: 0.3.0
+  status: draft
+
+timing:
+  control_hz: 50
+  gait_period: 0.40   # 走行周期 [s]（reference_run.yaml の T と一致）
+  firmware_hz: 1000
+  comm_delay_s: null
+
+robot:
+  total_mass: 0.951
+  height: null
+  num_joints: 8
+
+actuator:
+  model: MG996R
+  count: 8
+  mass_each: 0.055
+  stall_torque_nm: 1.0
+  no_load_speed_rps: 6.0
+
+links:
+  base_link  {mass: 0.3359}
+  LU1_1      {mass: 0.0977}
+  LU2_1      {mass: 0.0986}
+  LU3_1      {mass: 0.0986}
+  LU4_1      {mass: 0.0128}
+  RU1_1      {mass: 0.0977}
+  RU2_1      {mass: 0.0986}
+  RU3_1      {mass: 0.0986}
+  RU4_1      {mass: 0.0128}
+
+joints:
+  - {id: 0, name: L_hip_roll,    axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0, action_scale: 0.35}
+  - {id: 1, name: L_hip_pitch,   axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0, action_scale: 0.75}
+  - {id: 2, name: L_knee,        axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0, action_scale: 1.0}
+  - {id: 3, name: L_ankle_pitch, axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0, action_scale: 0.5}
+  - {id: 4, name: R_hip_roll,    axis: y, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0, action_scale: 0.35}
+  - {id: 5, name: R_hip_pitch,   axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0, action_scale: 0.75}
+  - {id: 6, name: R_knee,        axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0, action_scale: 1.0}
+  - {id: 7, name: R_ankle_pitch, axis: x, limit_lower: -1.570796, limit_upper: 1.570796, torque_max: 1.0, action_scale: 0.5}
+
+# --- 走行用参照歩容 + 残差制御 ---
+reference_gait:
+  file: reference_run.yaml
+  residual_scale: [0.15, 0.20, 0.25, 0.20, 0.15, 0.20, 0.25, 0.20]

@@ -160,6 +160,10 @@ def main() -> None:
         choices=["standing", "walking"],
         help="報酬関数の種類（カリキュラム未使用時）",
     )
+    parser.add_argument(
+        "--reset-timesteps", action="store_true", default=False,
+        help="Resume 時にステップカウントと学習率スケジュールをリセットする（ファインチューニングで必須）",
+    )
     args = parser.parse_args()
 
     print("=== ヒューマノイド強化学習 (PPO) 学習スクリプト ===")
@@ -224,7 +228,7 @@ def main() -> None:
                 "ent_coef": ppo_kwargs["ent_coef"],
             },
         )
-        reset_timesteps = False
+        reset_timesteps = args.reset_timesteps
     else:
         print("\n【Initialize】新規モデルの学習を開始します。")
         model = PPO(

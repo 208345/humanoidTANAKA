@@ -1,0 +1,87 @@
+# 極限前傾スプリント用カリキュラム（Sprint v2）
+# 前傾角深化 + ロールバランス強化により、0.25 m/s 超えの限界走行を目指す。
+
+phases:
+  - name: "Phase 1: 深前傾フォーム適応 (目標 0.26 m/s)"
+    reward_type: walking
+    reward_params:
+      target_velocity: 0.26
+      velocity_weight: 15.0
+      velocity_sharpness: 35.0
+      velocity_gait_gate: false
+      survival_reward: 6.0
+      fall_penalty: -200.0
+      fall_threshold: 1.0
+      min_height: 0.085
+      terminate_on_body_contact: true
+      orientation_weight: 8.0
+      ang_vel_weight: 0.05
+      effort_weight: 0.35
+      smoothness_weight: 0.2
+      lateral_weight: 10.0          # 横流れを抑制
+      heading_weight: 22.0          # 直進性を強化（曲がり転倒を防止）
+      yaw_limit: 0.6
+      gait_weight: 0.0
+      swing_ratio: 1.0
+      lag_lift_bonus: 0.0
+      lift_balance_weight: 15.0
+      alternation_weight: 0.0
+      double_support_penalty: 0.0
+      contact_change_penalty: 0.2
+      swing_weight: 80.0
+      swing_clear_cap: 0.025
+      swing_forward_weight: 10.0
+      slip_weight: 5.0              # 強い蹴り出しを許容
+      foot_rest_height: 0.014
+      lift_vel_weight: 0.0
+      skim_penalty: 0.0
+      skim_target: 0.01
+      height_weight: 20.0
+      target_height: 0.115
+    graduation:
+      metric: mean_reward
+      threshold: 7500.0
+      window: 80
+      min_steps: 80000
+
+  - name: "Phase 2: 極限スプリント加速 (目標 0.35 m/s)"
+    reward_type: walking
+    reward_params:
+      target_velocity: 0.35
+      velocity_weight: 20.0
+      velocity_sharpness: 25.0
+      velocity_gait_gate: false
+      survival_reward: 6.0
+      fall_penalty: -200.0
+      fall_threshold: 1.0
+      min_height: 0.085
+      terminate_on_body_contact: true
+      orientation_weight: 8.0
+      ang_vel_weight: 0.05
+      effort_weight: 0.3
+      smoothness_weight: 0.15
+      lateral_weight: 10.0
+      heading_weight: 22.0
+      yaw_limit: 0.6
+      gait_weight: 0.0
+      swing_ratio: 1.0
+      lag_lift_bonus: 0.0
+      lift_balance_weight: 12.0
+      alternation_weight: 0.0
+      double_support_penalty: 0.0
+      contact_change_penalty: 0.15
+      swing_weight: 80.0
+      swing_clear_cap: 0.030
+      swing_forward_weight: 12.0
+      slip_weight: 4.0
+      foot_rest_height: 0.014
+      lift_vel_weight: 0.0
+      skim_penalty: 0.0
+      skim_target: 0.01
+      height_weight: 18.0
+      target_height: 0.115
+    graduation:
+      metric: mean_reward
+      threshold: 1.0e9
+      window: 200
+      min_steps: 1000000000
